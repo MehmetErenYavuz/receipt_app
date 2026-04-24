@@ -1,77 +1,98 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Galeri için eklendi
+import 'package:image_picker/image_picker.dart';
 import '../services/camera_service.dart';
 import '../services/ocr_service.dart';
-import '../models/receipt_data.dart';
-import '../utils/receipt_parser.dart';
 import '../services/image_processor.dart';
+import '../utils/receipt_parser.dart';
+import '../widgets/result_sheet.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
-
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  final CameraService _cameraService = CameraService();
-  final OcrService _ocrService = OcrService();
-  final ImagePicker _imagePicker = ImagePicker(); // Galeri motoru
+  final _camera = CameraService();
+  final _ocr = OcrService();
+  final _picker = ImagePicker();
 
-  bool _isFlashOn = false;
-  bool _isProcessing = false;
-
-  // Görsel Odaklanma için değişkenler
+  bool _flashOn = false;
+  bool _processing = false;
   Offset? _focusPoint;
   Timer? _focusTimer;
 
   @override
   void initState() {
     super.initState();
-    _initCamera();
-  }
-
-  Future<void> _initCamera() async {
-    await _cameraService.initialize();
-    if (mounted) setState(() {});
-  }
-
-  void _onTapToFocus(TapDownDetails details, BoxConstraints constraints) {
-    if (!_cameraService.isInitialized) return;
-
-    final offset = Offset(
-      details.localPosition.dx / constraints.maxWidth,
-      details.localPosition.dy / constraints.maxHeight,
-    );
-
-    _cameraService.setFocusPoint(offset);
-
-    setState(() {
-      _focusPoint = details.localPosition;
-    });
-
-    _focusTimer?.cancel();
-    _focusTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted)
-        setState(() {
-          _focusPoint = null;
-        });
+    _camera.initialize().then((_) {
+      if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
     _focusTimer?.cancel();
-    _cameraService.dispose();
+    _camera.dispose();
     super.dispose();
+  }
+
+  void _onTap(TapDownDetails d, BoxConstraints c) {
+    if (!_camera.isInitialized) return;
+    final offset = Offset(
+      d.localPosition.dx / c.maxWidth,
+      d.localPosition.dy / c.maxHeight,
+    );
+    _camera.setFocusPoint(offset);
+    setState(() => _focusPoint = d.localPosition);
+    _focusTimer?.cancel();
+    _focusTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _focusPoint = null);
+    });
+  }
+
+  Future<void> _processImage(XFile file, {bool fromGallery = false}) async {
+    setState(() => _processing = true);
+    try {
+      final enhanced = fromGallery
+          ? await ImageProcessor.enhanceForGallery(file)
+          : await ImageProcessor.enhanceForCamera(file);
+      final ocr = await _ocr.processImage(enhanced);
+      if (mounted && ocr != null) _showResult(ocr);
+    } finally {
+      if (mounted) setState(() => _processing = false);
+    }
+  }
+
+  void _showResult(RecognizedText ocr) {
+    final data = ReceiptParser.parse(ocr);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.88,
+        minChildSize: 0.5,
+        maxChildSize: 0.97,
+        builder: (_, ctrl) => ResultSheet(
+          data: data,
+          onSave: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kaydedildi! (SQLite TODO)')),
+            );
+          },
+          onEdit: () {},
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_cameraService.isInitialized) {
+    if (!_camera.isInitialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
@@ -84,38 +105,46 @@ class _ScannerScreenState extends State<ScannerScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. Kamera Görüntüsü
+          // Kamera
           LayoutBuilder(
-            builder: (context, constraints) {
-              return GestureDetector(
-                onTapDown: (details) => _onTapToFocus(details, constraints),
-                child: SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  child: CameraPreview(_cameraService.controller!),
-                ),
-              );
-            },
+            builder: (ctx, c) => GestureDetector(
+              onTapDown: (d) => _onTap(d, c),
+              child: SizedBox(
+                width: c.maxWidth,
+                height: c.maxHeight,
+                child: CameraPreview(_camera.controller!),
+              ),
+            ),
           ),
 
-          // 2. Kılavuz Çerçeve (Yeşil Kutu)
+          // Kılavuz çerçeve
           Center(
             child: IgnorePointer(
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.6,
+                width: MediaQuery.of(context).size.width * 0.88,
+                height: MediaQuery.of(context).size.height * 0.58,
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Colors.greenAccent.withOpacity(0.5),
+                    color: Colors.greenAccent.withOpacity(0.6),
                     width: 2,
                   ),
                   borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: Text(
+                      'Fişi çerçeve içine hizalayın',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
 
-          // 3. Odaklanma Karesi
+          // Odak karesi
           if (_focusPoint != null)
             Positioned(
               left: _focusPoint!.dx - 30,
@@ -124,242 +153,117 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: Colors.white70, width: 1.5),
                 ),
               ),
             ),
 
-          // 4. Flaş Butonu
+          // Flash butonu
           Positioned(
             top: 50,
             right: 20,
             child: IconButton(
               icon: Icon(
-                _isFlashOn ? Icons.flash_on : Icons.flash_off,
+                _flashOn ? Icons.flash_on : Icons.flash_off,
                 color: Colors.white,
-                size: 30,
+                size: 28,
               ),
               onPressed: () {
-                setState(() {
-                  _isFlashOn = !_isFlashOn;
-                });
-                _cameraService.toggleFlash(
-                  _isFlashOn ? FlashMode.torch : FlashMode.off,
-                );
+                setState(() => _flashOn = !_flashOn);
+                _camera.toggleFlash(_flashOn ? FlashMode.torch : FlashMode.off);
               },
             ),
           ),
 
-          // 5. Alt Kontrol Paneli (Galeri ve Kamera)
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // GALERİ BUTONU (Filtreli ve Güçlendirilmiş İşlem)
-                IconButton(
-                  onPressed: _isProcessing
-                      ? null
-                      : () async {
-                          final XFile? galleryImage = await _imagePicker
-                              .pickImage(source: ImageSource.gallery);
-                          if (galleryImage != null) {
-                            setState(() {
-                              _isProcessing = true;
-                            });
-                            try {
-                              // Galeriden gelen resmi yapay zekaya vermeden önce "yıka"
-                              final enhancedImage =
-                                  await ImageProcessor.enhanceForGallery(
-                                    galleryImage,
-                                  );
-                              final okunanMetin = await _ocrService
-                                  .processImage(enhancedImage);
-
-                              if (mounted && okunanMetin != null) {
-                                _showResultDialog(okunanMetin);
-                              }
-                            } finally {
-                              if (mounted)
-                                setState(() {
-                                  _isProcessing = false;
-                                });
-                            }
-                          }
-                        },
-                  icon: const Icon(
-                    Icons.photo_library,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-
-                // KAMERA (DEKLANŞÖR) BUTONU (Hızlı ve Saf İşlem)
-                GestureDetector(
-                  onTap: _isProcessing
-                      ? null
-                      : () async {
-                          setState(() {
-                            _isProcessing = true;
-                          });
-                          try {
-                            // Kameradan gelen resmi doğrudan ML Kit'e ver
-                            final cameraImage = await _cameraService
-                                .takePicture();
-                            if (cameraImage != null) {
-                              final okunanMetin = await _ocrService
-                                  .processImage(cameraImage);
-
-                              if (mounted && okunanMetin != null) {
-                                _showResultDialog(okunanMetin);
-                              }
-                            }
-                          } finally {
-                            if (mounted)
-                              setState(() {
-                                _isProcessing = false;
-                              });
-                          }
-                        },
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      color: _isProcessing
-                          ? Colors.grey
-                          : Colors.blueAccent.withOpacity(0.8),
+          // İşlem göstergesi
+          if (_processing)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.blueAccent),
+                    SizedBox(height: 16),
+                    Text(
+                      'Analiz ediliyor...',
+                      style: TextStyle(color: Colors.white),
                     ),
-                    child: _isProcessing
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 40,
-                          ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Alt kontroller
+          if (!_processing)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Galeri
+                  _CircleBtn(
+                    icon: Icons.photo_library_outlined,
+                    onTap: () async {
+                      final f = await _picker.pickImage(
+                        source: ImageSource.gallery,
+                      );
+                      if (f != null) await _processImage(f, fromGallery: true);
+                    },
                   ),
-                ),
 
-                const SizedBox(width: 48),
-              ],
+                  // Deklanşör
+                  GestureDetector(
+                    onTap: () async {
+                      final f = await _camera.takePicture();
+                      if (f != null) await _processImage(f);
+                    },
+                    child: Container(
+                      width: 78,
+                      height: 78,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        color: Colors.blueAccent.withOpacity(0.85),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 38,
+                      ),
+                    ),
+                  ),
+
+                  // Geçmiş (TODO)
+                  _CircleBtn(icon: Icons.history, onTap: () {}),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
+}
 
-  void _showResultDialog(RecognizedText recognizedTextObj) {
-    ReceiptData parsedData = ReceiptParser.parse(recognizedTextObj);
+class _CircleBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _CircleBtn({required this.icon, required this.onTap});
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A), // MeyStudios Koyu Tema
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.analytics_outlined, color: Colors.blueAccent),
-            const SizedBox(width: 10),
-            const Text("Analiz Sonucu", style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        content: Container(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              _buildDataRow(Icons.business, "İşletme", parsedData.firmaAdi),
-              _buildDataRow(Icons.numbers, "Vergi/TC No", parsedData.vergiTcNo),
-              const Divider(color: Colors.white24),
-              _buildDataRow(
-                Icons.calendar_month,
-                "İşlem Tarihi",
-                parsedData.tarih,
-              ),
-              _buildDataRow(Icons.access_time, "İşlem Saati", parsedData.saat),
-              const Divider(color: Colors.white24),
-              // KDV bilgisini daha net veriyoruz
-              _buildDataRow(
-                Icons.receipt_long,
-                "Toplam KDV Tutarı",
-                parsedData.toplamKdv.isEmpty
-                    ? "Tespit Edilemedi"
-                    : "${parsedData.toplamKdv} TL",
-              ),
-              // GENEL TOPLAM vurgusu
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _buildDataRow(
-                  Icons.payments,
-                  "GENEL TOPLAM",
-                  parsedData.toplamTutar.isEmpty
-                      ? "---"
-                      : "${parsedData.toplamTutar} TL",
-                  isHighlight: true,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "DÜZENLE",
-              style: TextStyle(color: Colors.orangeAccent),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: SQLite Kayıt İşlemi
-            },
-            child: const Text("ONAYLA VE KAYDET"),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white12,
+        border: Border.all(color: Colors.white24),
       ),
-    );
-  }
-
-  Widget _buildDataRow(
-    IconData icon,
-    String title,
-    String value, {
-    bool isHighlight = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.blueAccent, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            "$title: ",
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-          Expanded(
-            child: Text(
-              value.isEmpty ? "-" : value,
-              style: TextStyle(
-                color: isHighlight ? Colors.greenAccent : Colors.white,
-                fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      child: Icon(icon, color: Colors.white, size: 26),
+    ),
+  );
 }
