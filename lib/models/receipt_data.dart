@@ -12,6 +12,10 @@ class ReceiptData {
   String fisNo;
   String seriNo;
   String zNo;
+  String ekuNo; // YENİ: EKÜ No (Elektronik Kayıt Ünitesi)
+  String ettn; // YENİ: e-Arşiv UUID
+  String mersisNo; // YENİ: 16 haneli Mersis No
+  String iban; // YENİ: IBAN (TR ile başlayan)
 
   // ── Zaman ───────────────────────────────────────────────────────
   String tarih;
@@ -21,13 +25,24 @@ class ReceiptData {
   List<KdvItem> kdvDetay;
   String toplamKdv;
   String kdvHaricToplam; // Matrah
+  String araToplam; // YENİ: İndirimden önceki ara toplam
   String toplamTutar;
   String odemeYontemi;
   String paraUstu;
+  String paraBirimi; // YENİ: TL, USD, EUR
+
+  // ── Yakıt Fişi Özel Alanları (varsa) ────────────────────────────
+  String? yakitTuru; // Motorin, Benzin, LPG vb.
+  String? yakitLitre; // 32.50 LT
+  String? pompaNo; // Pompa numarası
+  String? aracPlakasi; // 38 ABC 1234
+
+  // ── İletişim ────────────────────────────────────────────────────
+  String? telefon;
 
   // ── Sınıflandırma ve Medya ──────────────────────────────────────
   String kategori;
-  String? imagePath; // YENİ: Fotoğrafın telefondaki konumu
+  String? imagePath; // Fotoğrafın telefondaki konumu
 
   // ── Kalite ──────────────────────────────────────────────────────
   Map<String, double> confidenceScores;
@@ -42,14 +57,25 @@ class ReceiptData {
     this.fisNo = '',
     this.seriNo = '',
     this.zNo = '',
+    this.ekuNo = '',
+    this.ettn = '',
+    this.mersisNo = '',
+    this.iban = '',
     this.tarih = '',
     this.saat = '',
     List<KdvItem>? kdvDetay,
     this.toplamKdv = '',
     this.kdvHaricToplam = '',
+    this.araToplam = '',
     this.toplamTutar = '',
     this.odemeYontemi = '',
     this.paraUstu = '',
+    this.paraBirimi = 'TL',
+    this.yakitTuru,
+    this.yakitLitre,
+    this.pompaNo,
+    this.aracPlakasi,
+    this.telefon,
     this.kategori = 'Diğer',
     this.imagePath,
     Map<String, double>? confidenceScores,
@@ -98,4 +124,10 @@ class ReceiptData {
     final parsedKdv = double.tryParse(toplamKdv) ?? 0.0;
     return (detayToplam - parsedKdv).abs() < 0.10; // 10 kuruş tolerans
   }
+
+  /// Yakıt fişi mi?
+  bool get isYakitFisi => yakitTuru != null && yakitTuru!.isNotEmpty;
+
+  /// e-Arşiv fatura mı?
+  bool get isEArsiv => belgeTuru.contains('e-Arşiv') || ettn.isNotEmpty;
 }

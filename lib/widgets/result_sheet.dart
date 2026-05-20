@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/receipt_data.dart';
+import '../main.dart'; // AppColors
 
 class ResultSheet extends StatefulWidget {
   final ReceiptData data;
@@ -19,7 +20,6 @@ class ResultSheet extends StatefulWidget {
 }
 
 class _ResultSheetState extends State<ResultSheet> {
-  // Düzenlenebilir alanlar için controller'lar
   late final Map<String, TextEditingController> _controllers;
   bool _editMode = false;
 
@@ -42,7 +42,9 @@ class _ResultSheetState extends State<ResultSheet> {
 
   @override
   void dispose() {
-    for (final c in _controllers.values) c.dispose();
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -53,8 +55,8 @@ class _ResultSheetState extends State<ResultSheet> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF121212),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: Colors.amber,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,68 +65,105 @@ class _ResultSheetState extends State<ResultSheet> {
           Container(
             width: 40,
             height: 4,
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: Colors.amber.withOpacity(0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
           // ── Başlık ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: Row(
               children: [
-                const Icon(Icons.receipt_long, color: Colors.blueAccent),
-                const SizedBox(width: 10),
-                const Text(
-                  'Fiş Analizi',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long_rounded,
+                    color: Colors.deepOrange,
+                    size: 22,
                   ),
                 ),
-                const Spacer(),
-                // Güven badge
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Fiş Analizi',
+                        style: TextStyle(
+                          color: Colors.blueAccent,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      Text(
+                        'Verileri kontrol edip kaydedin',
+                        style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
                 _ConfidenceBadge(confidence: conf),
                 const SizedBox(width: 8),
                 // Düzenle toggle
-                IconButton(
-                  icon: Icon(
-                    _editMode ? Icons.check_circle : Icons.edit,
-                    color: _editMode ? Colors.greenAccent : Colors.white54,
+                Material(
+                  color: _editMode
+                      ? AppColors.success.withOpacity(0.12)
+                      : AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => setState(() => _editMode = !_editMode),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        _editMode ? Icons.check_rounded : Icons.edit_outlined,
+                        color: _editMode
+                            ? AppColors.success
+                            : AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
                   ),
-                  onPressed: () => setState(() => _editMode = !_editMode),
                 ),
               ],
             ),
           ),
 
-          // ── Uyarı (varsa) ──
+          // ── Uyarı ──
           if (d.uyari != null)
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.orange.withOpacity(0.4)),
+                color: AppColors.warning.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warning.withOpacity(0.25)),
               ),
               child: Row(
                 children: [
                   const Icon(
-                    Icons.warning_amber,
-                    color: Colors.orangeAccent,
-                    size: 18,
+                    Icons.warning_amber_rounded,
+                    color: AppColors.warning,
+                    size: 20,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       d.uyari!,
-                      style: const TextStyle(
-                        color: Colors.orangeAccent,
-                        fontSize: 12,
+                      style: TextStyle(
+                        color: AppColors.warning.withRed(180),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
                       ),
                     ),
                   ),
@@ -135,17 +174,17 @@ class _ResultSheetState extends State<ResultSheet> {
           // ── İçerik ──
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Firma Bilgileri
-                  _SectionHeader(
+                  // ── İşletme Bilgileri ──
+                  const _SectionHeader(
                     title: 'İşletme Bilgileri',
-                    icon: Icons.business,
+                    icon: Icons.storefront_rounded,
                   ),
                   _EditableRow(
-                    icon: Icons.store,
+                    icon: Icons.business_rounded,
                     label: 'Firma Adı',
                     controller: _controllers['firma']!,
                     editMode: _editMode,
@@ -153,40 +192,53 @@ class _ResultSheetState extends State<ResultSheet> {
                   ),
                   if (d.firmaAdresi.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.location_on,
+                      icon: Icons.location_on_outlined,
                       label: 'Adres',
                       value: d.firmaAdresi,
                     ),
                   if (d.vergiDairesi.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.account_balance,
+                      icon: Icons.account_balance_outlined,
                       label: 'Vergi Dairesi',
                       value: d.vergiDairesi,
                     ),
                   _EditableRow(
-                    icon: Icons.badge,
+                    icon: Icons.badge_outlined,
                     label: d.vergiTcNo.length == 11
                         ? 'TC Kimlik No'
-                        : 'Vergi No (VKN)',
+                        : 'Vergi No',
                     controller: _controllers['vergi']!,
                     editMode: _editMode,
                     confidence: d.confidenceScores['vergi'],
                   ),
+                  if (d.telefon != null && d.telefon!.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.phone_outlined,
+                      label: 'Telefon',
+                      value: d.telefon!,
+                    ),
+                  if (d.mersisNo.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.fingerprint_rounded,
+                      label: 'Mersis No',
+                      value: d.mersisNo,
+                    ),
 
-                  const SizedBox(height: 12),
-                  // Belge Bilgileri
-                  _SectionHeader(
+                  const SizedBox(height: 18),
+
+                  // ── Belge Bilgileri ──
+                  const _SectionHeader(
                     title: 'Belge Bilgileri',
-                    icon: Icons.description,
+                    icon: Icons.description_outlined,
                   ),
                   if (d.belgeTuru.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.article,
+                      icon: Icons.article_outlined,
                       label: 'Belge Türü',
                       value: d.belgeTuru,
                     ),
                   _EditableRow(
-                    icon: Icons.numbers,
+                    icon: Icons.tag_rounded,
                     label: 'Fiş / Belge No',
                     controller: _controllers['fisNo']!,
                     editMode: _editMode,
@@ -194,35 +246,57 @@ class _ResultSheetState extends State<ResultSheet> {
                   ),
                   if (d.seriNo.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.tag,
+                      icon: Icons.format_list_numbered_rtl,
                       label: 'Seri No',
                       value: d.seriNo,
                     ),
                   if (d.zNo.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.summarize,
+                      icon: Icons.summarize_outlined,
                       label: 'Z No',
                       value: d.zNo,
                     ),
+                  if (d.ekuNo.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.memory_rounded,
+                      label: 'EKÜ No',
+                      value: d.ekuNo,
+                    ),
+                  if (d.ettn.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.qr_code_2_rounded,
+                      label: 'ETTN',
+                      value: d.ettn,
+                    ),
+                  if (d.iban.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: 'IBAN',
+                      value: d.iban,
+                    ),
 
-                  const SizedBox(height: 12),
-                  // Zaman
-                  _SectionHeader(title: 'Tarih / Saat', icon: Icons.schedule),
+                  const SizedBox(height: 18),
+
+                  // ── Zaman ──
+                  const _SectionHeader(
+                    title: 'Tarih / Saat',
+                    icon: Icons.schedule_rounded,
+                  ),
                   Row(
                     children: [
                       Expanded(
                         child: _EditableRow(
-                          icon: Icons.calendar_today,
+                          icon: Icons.calendar_today_rounded,
                           label: 'Tarih',
                           controller: _controllers['tarih']!,
                           editMode: _editMode,
                           confidence: d.confidenceScores['tarih'],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _EditableRow(
-                          icon: Icons.access_time,
+                          icon: Icons.access_time_rounded,
                           label: 'Saat',
                           controller: _controllers['saat']!,
                           editMode: _editMode,
@@ -232,71 +306,178 @@ class _ResultSheetState extends State<ResultSheet> {
                     ],
                   ),
 
-                  const SizedBox(height: 12),
-                  // KDV Detayları
-                  _SectionHeader(title: 'KDV Detayları', icon: Icons.percent),
+                  // ── Yakıt Detayları (varsa) ──
+                  if (d.isYakitFisi) ...[
+                    const SizedBox(height: 18),
+                    const _SectionHeader(
+                      title: 'Yakıt Detayları',
+                      icon: Icons.local_gas_station_rounded,
+                    ),
+                    if (d.yakitTuru != null)
+                      _StaticRow(
+                        icon: Icons.water_drop_outlined,
+                        label: 'Yakıt Türü',
+                        value: d.yakitTuru!,
+                      ),
+                    if (d.yakitLitre != null)
+                      _StaticRow(
+                        icon: Icons.opacity_rounded,
+                        label: 'Miktar',
+                        value: d.yakitLitre!,
+                      ),
+                    if (d.pompaNo != null)
+                      _StaticRow(
+                        icon: Icons.local_gas_station_outlined,
+                        label: 'Pompa',
+                        value: d.pompaNo!,
+                      ),
+                    if (d.aracPlakasi != null)
+                      _StaticRow(
+                        icon: Icons.directions_car_rounded,
+                        label: 'Plaka',
+                        value: d.aracPlakasi!,
+                      ),
+                  ],
+
+                  const SizedBox(height: 18),
+
+                  // ── KDV Detayları ──
+                  const _SectionHeader(
+                    title: 'KDV Detayları',
+                    icon: Icons.percent_rounded,
+                  ),
                   if (d.kdvDetay.isNotEmpty)
                     ...d.kdvDetay.map((item) => _KdvDetailRow(item: item)),
                   _EditableRow(
-                    icon: Icons.receipt,
+                    icon: Icons.receipt_outlined,
                     label: 'Toplam KDV',
                     controller: _controllers['kdv']!,
                     editMode: _editMode,
-                    suffix: 'TL',
+                    suffix: '₺',
                     confidence: d.confidenceScores['kdv'],
                   ),
                   if (d.kdvHaricToplam.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.remove_circle_outline,
+                      icon: Icons.remove_circle_outline_rounded,
                       label: 'Matrah (KDV Hariç)',
-                      value: '${d.kdvHaricToplam} TL',
+                      value: '${d.kdvHaricToplam} ₺',
+                    ),
+                  if (d.araToplam.isNotEmpty)
+                    _StaticRow(
+                      icon: Icons.functions_rounded,
+                      label: 'Ara Toplam',
+                      value: '${d.araToplam} ₺',
                     ),
 
-                  const SizedBox(height: 12),
-                  // Toplam
-                  _SectionHeader(title: 'Ödeme', icon: Icons.payments),
-                  // GENEL TOPLAM — vurgulu
+                  const SizedBox(height: 18),
+
+                  // ── Ödeme ──
+                  const _SectionHeader(
+                    title: 'Ödeme',
+                    icon: Icons.payments_rounded,
+                  ),
+
+                  // GENEL TOPLAM — vurgulu kart
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.blueAccent.withOpacity(0.2),
-                          Colors.blueAccent.withOpacity(0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.blueAccent.withOpacity(0.4),
-                      ),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                    child: _EditableRow(
-                      icon: Icons.price_check,
-                      label: 'GENEL TOPLAM',
-                      controller: _controllers['toplam']!,
-                      editMode: _editMode,
-                      suffix: 'TL',
-                      isHighlight: true,
-                      confidence: d.confidenceScores['toplam'],
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.payments_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'GENEL TOPLAM',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                        if (_editMode)
+                          SizedBox(
+                            width: 130,
+                            child: TextField(
+                              controller: _controllers['toplam']!,
+                              textAlign: TextAlign.right,
+                              keyboardType: TextInputType.text,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.12),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                                suffixText: '₺',
+                                suffixStyle: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Text(
+                            '${_controllers['toplam']!.text.isEmpty ? '—' : _controllers['toplam']!.text} ₺',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+
                   if (d.odemeYontemi.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.credit_card,
+                      icon: Icons.credit_card_rounded,
                       label: 'Ödeme Yöntemi',
                       value: d.odemeYontemi,
                     ),
                   if (d.paraUstu.isNotEmpty)
                     _StaticRow(
-                      icon: Icons.money_off,
+                      icon: Icons.attach_money_rounded,
                       label: 'Para Üstü',
-                      value: '${d.paraUstu} TL',
+                      value: '${d.paraUstu} ₺',
                     ),
 
-                  const SizedBox(height: 12),
-                  // Kategori
-                  _SectionHeader(title: 'Sınıflandırma', icon: Icons.category),
+                  const SizedBox(height: 18),
+
+                  // ── Kategori ──
+                  const _SectionHeader(
+                    title: 'Kategori',
+                    icon: Icons.category_outlined,
+                  ),
                   _CategorySelector(
                     selected: _controllers['kategori']!.text,
                     onChanged: (v) =>
@@ -311,23 +492,36 @@ class _ResultSheetState extends State<ResultSheet> {
 
           // ── Aksiyon Butonları ──
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 8)],
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              MediaQuery.of(context).viewPadding.bottom + 16,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.divider)),
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orangeAccent,
-                      side: const BorderSide(color: Colors.orangeAccent),
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: AppColors.divider),
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
-                    icon: const Icon(Icons.close),
-                    label: const Text('İPTAL'),
                     onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'İptal',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -335,13 +529,23 @@ class _ResultSheetState extends State<ResultSheet> {
                   flex: 2,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
                     ),
-                    icon: const Icon(Icons.save),
-                    label: const Text('ONAYLA VE KAYDET'),
+                    icon: const Icon(Icons.check_rounded, size: 20),
+                    label: const Text(
+                      'Onayla ve Kaydet',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
                     onPressed: () {
-                      // Düzenlenen değerleri geri yaz
                       widget.data.firmaAdi = _controllers['firma']!.text;
                       widget.data.vergiTcNo = _controllers['vergi']!.text;
                       widget.data.fisNo = _controllers['fisNo']!.text;
@@ -364,8 +568,9 @@ class _ResultSheetState extends State<ResultSheet> {
   }
 }
 
-// ── Alt Widget'lar ──────────────────────────────────────────
-
+// ═══════════════════════════════════════════════════════════════════════
+// SECTION HEADER
+// ═══════════════════════════════════════════════════════════════════════
 class _SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -373,27 +578,28 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6, top: 2),
+    padding: const EdgeInsets.only(bottom: 8, top: 2),
     child: Row(
       children: [
-        Icon(icon, size: 14, color: Colors.blueAccent),
-        const SizedBox(width: 6),
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 8),
         Text(
-          title,
+          title.toUpperCase(),
           style: const TextStyle(
-            color: Colors.blueAccent,
+            color: AppColors.textSecondary,
             fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(width: 8),
-        const Expanded(child: Divider(color: Colors.white12)),
       ],
     ),
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// STATIC ROW
+// ═══════════════════════════════════════════════════════════════════════
 class _StaticRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -406,22 +612,43 @@ class _StaticRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
+    padding: const EdgeInsets.symmetric(vertical: 7),
     child: Row(
       children: [
-        Icon(icon, color: Colors.white38, size: 18),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white54, fontSize: 13),
+        Icon(icon, color: AppColors.textTertiary, size: 18),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
-        const Spacer(),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 13)),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     ),
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// EDITABLE ROW
+// ═══════════════════════════════════════════════════════════════════════
 class _EditableRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -443,26 +670,26 @@ class _EditableRow extends StatelessWidget {
 
   Color _confColor() {
     if (confidence == null) return Colors.transparent;
-    if (confidence! >= 0.85) return Colors.greenAccent;
-    if (confidence! >= 0.65) return Colors.orangeAccent;
-    return Colors.redAccent;
+    if (confidence! >= 0.85) return AppColors.success;
+    if (confidence! >= 0.65) return AppColors.warning;
+    return AppColors.danger;
   }
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
+    padding: const EdgeInsets.symmetric(vertical: 7),
     child: Row(
       children: [
-        Icon(icon, color: Colors.white38, size: 18),
-        const SizedBox(width: 10),
+        Icon(icon, color: AppColors.textTertiary, size: 18),
+        const SizedBox(width: 12),
         Expanded(
           flex: 2,
           child: Text(
             label,
-            style: TextStyle(
-              color: isHighlight ? Colors.white : Colors.white54,
-              fontSize: isHighlight ? 14 : 13,
-              fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -482,34 +709,28 @@ class _EditableRow extends StatelessWidget {
           child: editMode
               ? TextField(
                   controller: controller,
-                  style: TextStyle(
-                    color: isHighlight ? Colors.greenAccent : Colors.white,
-                    fontSize: isHighlight ? 16 : 14,
-                    fontWeight: isHighlight
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
+                      horizontal: 10,
+                      vertical: 8,
                     ),
                     filled: true,
-                    fillColor: Colors.white10,
+                    fillColor: AppColors.surfaceAlt,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    suffix: suffix != null
-                        ? Text(
-                            suffix!,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          )
-                        : null,
+                    suffixText: suffix,
+                    suffixStyle: const TextStyle(
+                      color: AppColors.textTertiary,
+                      fontSize: 12,
+                    ),
                   ),
                   textAlign: TextAlign.right,
                 )
@@ -529,15 +750,11 @@ class _EditableRow extends StatelessWidget {
                         : '${controller.text}${suffix != null ? ' $suffix' : ''}',
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: isHighlight
-                          ? Colors.greenAccent
-                          : controller.text.isEmpty
-                          ? Colors.white30
-                          : Colors.white,
-                      fontSize: isHighlight ? 16 : 14,
-                      fontWeight: isHighlight
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      color: controller.text.isEmpty
+                          ? AppColors.textTertiary
+                          : AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -547,48 +764,62 @@ class _EditableRow extends StatelessWidget {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// KDV DETAY ROW
+// ═══════════════════════════════════════════════════════════════════════
 class _KdvDetailRow extends StatelessWidget {
   final dynamic item;
   const _KdvDetailRow({required this.item});
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
+    padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(
       children: [
-        const Icon(Icons.arrow_right, color: Colors.white24, size: 18),
+        const Icon(
+          Icons.subdirectory_arrow_right_rounded,
+          color: AppColors.textTertiary,
+          size: 16,
+        ),
         const SizedBox(width: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: Colors.blueAccent.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(4),
+            color: AppColors.accent.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             item.oran,
             style: const TextStyle(
-              color: Colors.blueAccent,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+              color: AppColors.accent,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        if (item.matrah.isNotEmpty)
+        const SizedBox(width: 10),
+        if (item.matrah != null && item.matrah.toString().isNotEmpty)
           Text(
-            'Matrah: ${item.matrah} TL  ',
-            style: const TextStyle(color: Colors.white38, fontSize: 12),
+            'Matrah: ${item.matrah} ₺',
+            style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
           ),
         const Spacer(),
         Text(
-          'KDV: ${item.tutar} TL',
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
+          'KDV: ${item.tutar} ₺',
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     ),
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// CONFIDENCE BADGE
+// ═══════════════════════════════════════════════════════════════════════
 class _ConfidenceBadge extends StatelessWidget {
   final double confidence;
   const _ConfidenceBadge({required this.confidence});
@@ -598,36 +829,49 @@ class _ConfidenceBadge extends StatelessWidget {
     final pct = (confidence * 100).round();
     Color color;
     String label;
+    IconData icon;
     if (pct >= 80) {
-      color = Colors.green;
-      label = '$pct% Yüksek';
+      color = AppColors.success;
+      label = '$pct%';
+      icon = Icons.check_circle_rounded;
     } else if (pct >= 55) {
-      color = Colors.orange;
-      label = '$pct% Orta';
+      color = AppColors.warning;
+      label = '$pct%';
+      icon = Icons.info_rounded;
     } else {
-      color = Colors.red;
-      label = '$pct% Düşük';
+      color = AppColors.danger;
+      label = '$pct%';
+      icon = Icons.error_rounded;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.5)),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 12),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// CATEGORY SELECTOR
+// ═══════════════════════════════════════════════════════════════════════
 class _CategorySelector extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onChanged;
@@ -635,34 +879,35 @@ class _CategorySelector extends StatelessWidget {
   const _CategorySelector({required this.selected, required this.onChanged});
 
   static const _categories = [
-    ('Market', Icons.shopping_cart),
-    ('Yeme-İçme', Icons.restaurant),
-    ('Yakıt', Icons.local_gas_station),
-    ('Sağlık', Icons.local_hospital),
-    ('Giyim', Icons.checkroom),
-    ('Elektronik', Icons.devices),
-    ('Ulaşım', Icons.directions_car),
-    ('Diğer', Icons.more_horiz),
+    ('Market', Icons.shopping_basket_rounded),
+    ('Yeme-İçme', Icons.restaurant_rounded),
+    ('Yakıt', Icons.local_gas_station_rounded),
+    ('Sağlık', Icons.local_hospital_rounded),
+    ('Giyim', Icons.checkroom_rounded),
+    ('Elektronik', Icons.devices_rounded),
+    ('Ulaşım', Icons.directions_car_rounded),
+    ('Faturalar', Icons.receipt_rounded),
+    ('Diğer', Icons.more_horiz_rounded),
   ];
 
   @override
   Widget build(BuildContext context) => Wrap(
     spacing: 8,
-    runSpacing: 6,
+    runSpacing: 8,
     children: _categories.map((cat) {
       final isSelected = selected == cat.$1;
+      final renk = AppColors.kategoriRenkler[cat.$1] ?? AppColors.primary;
       return GestureDetector(
         onTap: () => onChanged(cat.$1),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.blueAccent.withOpacity(0.25)
-                : Colors.white10,
+            color: isSelected ? renk : AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? Colors.blueAccent : Colors.transparent,
+              color: isSelected ? renk : AppColors.divider,
+              width: 1,
             ),
           ),
           child: Row(
@@ -671,14 +916,15 @@ class _CategorySelector extends StatelessWidget {
               Icon(
                 cat.$2,
                 size: 14,
-                color: isSelected ? Colors.blueAccent : Colors.white54,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               Text(
                 cat.$1,
                 style: TextStyle(
-                  color: isSelected ? Colors.blueAccent : Colors.white54,
-                  fontSize: 12,
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

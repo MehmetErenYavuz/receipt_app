@@ -258,9 +258,105 @@ class ReceiptParser {
     'TCDD': 'Ulaşım',
     'İDO': 'Ulaşım',
     'IDO': 'Ulaşım',
-    'ÇİÇEK': 'Diğer',
-    'CICEK': 'Diğer',
-    'İNCİ ÇİÇEK': 'Diğer',
+    'BUDO': 'Ulaşım',
+    'HAVAS': 'Ulaşım',
+    'HAVAİST': 'Ulaşım',
+    'HAVAIST': 'Ulaşım',
+    'METRO': 'Ulaşım',
+    'BİTAKSİ': 'Ulaşım',
+    'BITAKSI': 'Ulaşım',
+    'UBER': 'Ulaşım',
+    'MARTI': 'Ulaşım',
+    'MARTİ': 'Ulaşım',
+    // ── Ek market markaları ──
+    'TARIM KREDI': 'Market',
+    'TARIM KREDİ': 'Market',
+    'SEÇ': 'Market',
+    'SEC MARKET': 'Market',
+    'HAPPY': 'Market',
+    'KIM': 'Market',
+    'KIM MARKET': 'Market',
+    'EKO MARKET': 'Market',
+    'ONUR MARKET': 'Market',
+    'BİZİM': 'Market',
+    'BIZIM': 'Market',
+    'YUNUS MARKET': 'Market',
+    'KILER': 'Market',
+    'KİLER': 'Market',
+    // ── Ek yakıt ──
+    'TURKUVAZ': 'Yakıt',
+    'AYTEMİZ': 'Yakıt',
+    'AYTEMIZ': 'Yakıt',
+    'TP AKARYAKIT': 'Yakıt',
+    'PETROL OFISI': 'Yakıt',
+    'PETROL OFİSİ': 'Yakıt',
+    'POAS': 'Yakıt',
+    // ── Ek yeme-içme ──
+    'POPEYES': 'Yeme-İçme',
+    'KFC': 'Yeme-İçme',
+    'DOMINOS': 'Yeme-İçme',
+    'DOMİNOS': 'Yeme-İçme',
+    'SUBWAY': 'Yeme-İçme',
+    'SIMIT SARAYI': 'Yeme-İçme',
+    'SİMİT SARAYI': 'Yeme-İçme',
+    'KAHVE DUNYASI': 'Yeme-İçme',
+    'KAHVE DÜNYASI': 'Yeme-İçme',
+    'GLORIA JEANS': 'Yeme-İçme',
+    "PAUL'S": 'Yeme-İçme',
+    'TATCAFE': 'Yeme-İçme',
+    'EATALY': 'Yeme-İçme',
+    'BIG CHEFS': 'Yeme-İçme',
+    'GUNAYDIN': 'Yeme-İçme',
+    'GÜNAYDIN': 'Yeme-İçme',
+    'NUSR-ET': 'Yeme-İçme',
+    'NUSRET': 'Yeme-İçme',
+    // ── Ek sağlık/eczane ──
+    'ECZ.': 'Sağlık',
+    'MEDİKAL': 'Sağlık',
+    'MEDIKAL': 'Sağlık',
+    'POLİKLİNİK': 'Sağlık',
+    'POLIKLINIK': 'Sağlık',
+    'LABORATUVAR': 'Sağlık',
+    // ── Ek elektronik ──
+    'BIM TEKNO': 'Elektronik',
+    'GOLD BILGISAYAR': 'Elektronik',
+    'GOLD BİLGİSAYAR': 'Elektronik',
+    'TURKCELL ILETISIM': 'Elektronik',
+    'TÜRKCELL İLETİŞİM': 'Elektronik',
+    // ── Ek giyim ──
+    'COLINS': 'Giyim',
+    "COLIN'S": 'Giyim',
+    'COLİNS': 'Giyim',
+    'NETWORK': 'Giyim',
+    'POLO': 'Giyim',
+    'US POLO': 'Giyim',
+    'BERSHKA': 'Giyim',
+    'PULL&BEAR': 'Giyim',
+    'STRADIVARIUS': 'Giyim',
+    'TUDORS': 'Giyim',
+    'KIĞILI': 'Giyim',
+    'KIGILI': 'Giyim',
+    'DAMAT': 'Giyim',
+    // ── Faturalar ──
+    'ENERJİSA': 'Faturalar',
+    'ENERJISA': 'Faturalar',
+    'BEDAS': 'Faturalar',
+    'BEDAŞ': 'Faturalar',
+    'IGDAS': 'Faturalar',
+    'İGDAŞ': 'Faturalar',
+    'AYEDAS': 'Faturalar',
+    'AYEDAŞ': 'Faturalar',
+    'ISKI': 'Faturalar',
+    'İSKİ': 'Faturalar',
+    'ASKI': 'Faturalar',
+    'KAYSERIGAZ': 'Faturalar',
+    'KAYSERİGAZ': 'Faturalar',
+    'TÜRKSAT': 'Faturalar',
+    'TURKSAT': 'Faturalar',
+    'TURK TELEKOM': 'Faturalar',
+    'TÜRK TELEKOM': 'Faturalar',
+    'TTNET': 'Faturalar',
+    'SUPERONLINE': 'Faturalar',
   };
 
   static final RegExp _priceReg = RegExp(
@@ -269,6 +365,77 @@ class ReceiptParser {
 
   static final RegExp _numOnlyReg = RegExp(
     r'\d{1,3}(?:\.\d{3})*[.,]\d{2}(?!\d)',
+  );
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ EKLENEN REGEX'LER — Türk fiş yapısı için kapsamlı set
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ETTN: e-Arşiv fişlerinde bulunan UUID v4 formatlı kod
+  // Örnek: f47ac10b-58cc-4372-a567-0e02b2c3d479
+  static final RegExp _ettnReg = RegExp(
+    r'\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b',
+  );
+
+  // MERSIS No: 16 haneli ticaret sicil numarası
+  static final RegExp _mersisReg = RegExp(
+    r'MERS[İI]S\s*(?:NO)?[\s:.-]*(\d{16})',
+    caseSensitive: false,
+  );
+
+  // IBAN (TR ile başlayan 26 haneli)
+  static final RegExp _ibanReg = RegExp(
+    r'\b(TR\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2})\b',
+  );
+
+  // EKÜ/EKU No: Elektronik Kayıt Ünitesi
+  static final RegExp _ekuReg = RegExp(
+    r'\bEK[ÜU]\s*(?:NO|N0)?[\s:.-]*([A-Z]{0,3}\s?\d{6,12})',
+    caseSensitive: false,
+  );
+
+  // Yakıt fişi için: Pompa No, Yakıt Türü, Litre
+  static final RegExp _pompaReg = RegExp(
+    r'POMPA\s*(?:NO)?[\s:.-]*(\d+)',
+    caseSensitive: false,
+  );
+
+  static final RegExp _litreReg = RegExp(
+    r'(\d+[.,]\d{1,3})\s*(?:LT|LİT|LITRE|L)\b',
+    caseSensitive: false,
+  );
+
+  static final RegExp _yakitTuruReg = RegExp(
+    r'\b(MOTORIN|MOTORİN|BENZIN|BENZİN|LPG|95\s*OKTAN|97\s*OKTAN|DIESEL|DİZEL|EUROD[İI]ESEL|V/MAX|VMAX|ULTRAFORCE)\b',
+    caseSensitive: false,
+  );
+
+  // Plaka: 34 ABC 1234 formatı (yakıt fişlerinde araç plakası)
+  static final RegExp _plakaReg = RegExp(
+    r'\b(0[1-9]|[1-7][0-9]|8[01])\s?([A-ZŞĞÇİÖÜ]{1,3})\s?(\d{2,4})\b',
+  );
+
+  // ÖKC Seri No: AB 12345678 formatı (Yazarkasa seri no)
+  static final RegExp _okcSeriReg = RegExp(r'\b([A-Z]{2}\s?\d{8})\b');
+
+  // E-arşiv belge no: 3 harf + 13 rakam (ABC2024000000001 gibi)
+  static final RegExp _eArsivReg = RegExp(r'\b([A-Z]{3}20\d{11})\b');
+
+  // Para birimi tespiti
+  static final RegExp _paraBirimiReg = RegExp(
+    r'\b(TL|TRY|₺|TURK\s*LIRASI|TÜRK\s*LİRASI|USD|EUR|EURO|GBP)\b',
+    caseSensitive: false,
+  );
+
+  // Ara Toplam (Genel toplamdan ayırt etmek için)
+  static final RegExp _araToplamReg = RegExp(
+    r'\bARA\s*TOP(?:LAM)?\b',
+    caseSensitive: false,
+  );
+
+  // Telefon (firma telefonu olabilir)
+  static final RegExp _telefonReg = RegExp(
+    r'\b(0\d{3}[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2})\b',
   );
 
   // ═══════════════════════════════════════════════════════════════════
@@ -311,6 +478,16 @@ class ReceiptParser {
     final toplam = _toplam(rows, topKdv, isBankaDekontu);
     final odeme = _odemeYontemi(rows);
     final paraUstu = _paraUstu(rows);
+
+    // ── YENİ EKLENEN ALANLAR ──────────────────────────────────────
+    final ekuNo = _ekuNo(rows);
+    final ettn = _ettn(rows);
+    final mersis = _mersis(rows);
+    final iban = _iban(rows);
+    final araToplam = _araToplam(rows);
+    final paraBirimi = _paraBirimi(rows);
+    final yakitDetay = _yakitDetay(rows);
+    final telefon = _telefon(rows);
     final Map<String, double> scores = {
       if (firma.found) 'firma': firma.confidence,
       if (vkn.found) 'vergi': vkn.confidence,
@@ -379,14 +556,25 @@ class ReceiptParser {
       fisNo: fisNo.value,
       seriNo: seri.value,
       zNo: zNo.value,
+      ekuNo: ekuNo.value,
+      ettn: ettn.value,
+      mersisNo: mersis.value,
+      iban: iban.value,
       tarih: tarih.value,
       saat: saat.value,
       kdvDetay: kdvDetay,
       toplamKdv: finalToplamKdv,
       kdvHaricToplam: matrah.value,
+      araToplam: araToplam.value,
       toplamTutar: finalToplamTutar,
       odemeYontemi: odeme.value,
       paraUstu: paraUstu.value,
+      paraBirimi: paraBirimi.value.isEmpty ? 'TL' : paraBirimi.value,
+      yakitTuru: yakitDetay['turu'],
+      yakitLitre: yakitDetay['litre'],
+      pompaNo: yakitDetay['pompa'],
+      aracPlakasi: yakitDetay['plaka'],
+      telefon: telefon.value.isEmpty ? null : telefon.value,
       kategori: _kategori(firma.value, odeme.value, rows),
       confidenceScores: scores,
       uyari: uyari,
@@ -657,17 +845,85 @@ class ReceiptParser {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // TARİH
+  // TARİH — GÜÇLENDİRİLMİŞ (Birden çok format desteği)
   // ═══════════════════════════════════════════════════════════════════
   static _Field _tarih(List<_Row> rows) {
+    // Format 1: DD.MM.YYYY / DD/MM/YYYY / DD-MM-YYYY (Türk standardı)
     final dateReg = RegExp(
       r'(0?[1-9]|[12][0-9]|3[01])[\s.\-\/,:;]+(0?[1-9]|1[012])[\s.\-\/,:;]+(20[1-3][0-9]|[1-2][0-9])',
+    );
+
+    // YENİ: Format 2: YYYY-MM-DD (ISO 8601 — e-Arşiv fişlerinde)
+    final isoDateReg = RegExp(
+      r'(20[1-3][0-9])[-/](0[1-9]|1[012])[-/](0[1-9]|[12][0-9]|3[01])',
+    );
+
+    // YENİ: Format 3: "15 Mayıs 2026" gibi yazılı aylar
+    final monthMap = {
+      'OCAK': '01',
+      'OCA': '01',
+      'ŞUBAT': '02',
+      'SUBAT': '02',
+      'ŞUB': '02',
+      'SUB': '02',
+      'MART': '03',
+      'MAR': '03',
+      'NİSAN': '04',
+      'NISAN': '04',
+      'NIS': '04',
+      'MAYIS': '05',
+      'MAY': '05',
+      'HAZİRAN': '06',
+      'HAZIRAN': '06',
+      'HAZ': '06',
+      'TEMMUZ': '07',
+      'TEM': '07',
+      'AĞUSTOS': '08',
+      'AGUSTOS': '08',
+      'AGU': '08',
+      'EYLÜL': '09',
+      'EYLUL': '09',
+      'EYL': '09',
+      'EKİM': '10',
+      'EKIM': '10',
+      'EKI': '10',
+      'KASIM': '11',
+      'KAS': '11',
+      'ARALIK': '12',
+      'ARA': '12',
+    };
+    final writtenDateReg = RegExp(
+      r'(\d{1,2})\s+(OCAK|OCA|ŞUBAT|SUBAT|ŞUB|SUB|MART|MAR|NİSAN|NISAN|NIS|MAYIS|MAY|HAZİRAN|HAZIRAN|HAZ|TEMMUZ|TEM|AĞUSTOS|AGUSTOS|AGU|EYLÜL|EYLUL|EYL|EKİM|EKIM|EKI|KASIM|KAS|ARALIK|ARA)\s+(20\d{2})',
+      caseSensitive: false,
     );
 
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
       String cleaned = _ocrClean(rows[i].text);
 
+      // ISO format kontrolü
+      final isoMatch = isoDateReg.firstMatch(cleaned);
+      if (isoMatch != null) {
+        String raw =
+            '${isoMatch.group(3)!}.${isoMatch.group(2)!}.${isoMatch.group(1)!}';
+        if (_validDate(raw)) {
+          return _Field(raw, 0.98);
+        }
+      }
+
+      // Yazılı ay kontrolü
+      final writtenMatch = writtenDateReg.firstMatch(u);
+      if (writtenMatch != null) {
+        String gun = writtenMatch.group(1)!.padLeft(2, '0');
+        String ay = monthMap[writtenMatch.group(2)!.toUpperCase()] ?? '00';
+        String yil = writtenMatch.group(3)!;
+        String raw = '$gun.$ay.$yil';
+        if (_validDate(raw)) {
+          return _Field(raw, 0.95);
+        }
+      }
+
+      // Standart Türk formatı
       String noSpaces = cleaned.replaceAll(' ', '');
 
       Match? m = dateReg.firstMatch(noSpaces);
@@ -717,19 +973,26 @@ class ReceiptParser {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // KDV ORAN DETAYLARI
+  // KDV ORAN DETAYLARI — GÜÇLENDİRİLMİŞ
+  // Türkiye'de geçerli KDV oranları: %1, %8, %10, %18, %20
+  // (%18'den %20'ye geçiş Temmuz 2023, %10 oranı belirli ürünler için)
   // ═══════════════════════════════════════════════════════════════════
   static List<KdvItem> _kdvDetay(List<_Row> rows) {
     final items = <KdvItem>[];
     final foundOranlar = <String>{};
 
-    final oranFiyatReg = RegExp(r'%\s*(\d{1,2})\b');
+    // GÜÇLENDİRİLDİ: Türkiye'de geçerli KDV oranlarını sınırla
+    // Bu sayede rastgele "%5" gibi yanlış eşleşmeler önlenir
+    final oranFiyatReg = RegExp(r'%\s*(1|8|10|18|20)\b');
 
+    // GÜÇLENDİRİLDİ: Tablo satırı tespiti - farklı format kombinasyonları
     final tableSatirReg = RegExp(
-      r'%\s*(\d{1,2})\s+([\d.,]+)\s+\*?([\d.,]+)\s+\*?([\d.,]+)',
+      r'%\s*(1|8|10|18|20)\s+([\d.,]+)\s+\*?([\d.,]+)(?:\s+\*?([\d.,]+))?',
     );
 
-    for (final row in rows) {
+    // YENİ: "KDV %18" + ayrı satırda tutar formatı için satırlar arası bağlama
+    for (int idx = 0; idx < rows.length; idx++) {
+      final row = rows[idx];
       final u = row.upper;
       final cleaned = _ocrClean(row.text);
 
@@ -778,6 +1041,19 @@ class ReceiptParser {
                   : _normPrice(matrahFiyat ?? ''),
             ),
           );
+        } else if (idx + 1 < rows.length) {
+          // YENİ: Bir sonraki satırda fiyat varsa bağla
+          final nextPrices = rows[idx + 1].allPrices(_priceReg);
+          if (nextPrices.isNotEmpty) {
+            foundOranlar.add(oran);
+            items.add(
+              KdvItem(
+                oran: '%$oran',
+                matrah: '',
+                tutar: _normPrice(nextPrices.last),
+              ),
+            );
+          }
         }
       }
     }
@@ -1024,6 +1300,191 @@ class ReceiptParser {
         final cleaned = _ocrClean(rows[i].text);
         final p = _findRightmostPrice(cleaned, _priceReg);
         if (p != null) return _Field(_normPrice(p), 0.88);
+      }
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: ETTN (e-Arşiv UUID)
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _ettn(List<_Row> rows) {
+    for (final row in rows) {
+      final u = row.upper;
+      final cleaned = row.text;
+
+      // ETTN etiketi varsa öncelik ver
+      if (u.contains('ETTN')) {
+        final m = _ettnReg.firstMatch(cleaned);
+        if (m != null) return _Field(m.group(1)!.toLowerCase(), 0.99);
+      }
+    }
+    // Etiketsiz UUID arama (e-Arşiv fişlerinde altta yer alır)
+    for (final row in rows) {
+      final m = _ettnReg.firstMatch(row.text);
+      if (m != null) return _Field(m.group(1)!.toLowerCase(), 0.92);
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: MERSIS No (16 haneli)
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _mersis(List<_Row> rows) {
+    for (final row in rows) {
+      final cleaned = _ocrClean(row.text);
+      final m = _mersisReg.firstMatch(cleaned);
+      if (m != null) return _Field(m.group(1)!, 0.96);
+    }
+    // Etiketsiz 16 haneli sayı (Mersis genellikle 0 ile başlar)
+    final mersisAltReg = RegExp(r'\b(0\d{15})\b');
+    for (final row in rows) {
+      final m = mersisAltReg.firstMatch(_ocrClean(row.text));
+      if (m != null) return _Field(m.group(1)!, 0.70);
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: IBAN (TR ile başlayan)
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _iban(List<_Row> rows) {
+    for (final row in rows) {
+      final m = _ibanReg.firstMatch(row.text.toUpperCase());
+      if (m != null) {
+        // Boşlukları temizle ve normalize et
+        final clean = m.group(1)!.replaceAll(' ', '');
+        if (clean.length == 26) {
+          return _Field(clean, 0.95);
+        }
+      }
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: EKÜ No
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _ekuNo(List<_Row> rows) {
+    for (final row in rows) {
+      final cleaned = _ocrClean(row.text);
+      final m = _ekuReg.firstMatch(cleaned);
+      if (m != null) {
+        final val = m.group(1)!.trim();
+        if (val.isNotEmpty) return _Field(val.toUpperCase(), 0.88);
+      }
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: ARA TOPLAM
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _araToplam(List<_Row> rows) {
+    for (int i = 0; i < rows.length; i++) {
+      final u = rows[i].upper;
+      if (_araToplamReg.hasMatch(u)) {
+        final cleaned = _ocrClean(rows[i].text);
+        final p = _findRightmostPrice(cleaned, _priceReg);
+        if (p != null) return _Field(_normPrice(p), 0.90);
+
+        // Aynı satırda fiyat yoksa bir sonraki satıra bak
+        if (i + 1 < rows.length) {
+          final nextCleaned = _ocrClean(rows[i + 1].text);
+          final pn = _findRightmostPrice(nextCleaned, _priceReg);
+          if (pn != null) return _Field(_normPrice(pn), 0.75);
+        }
+      }
+    }
+    return _Field.empty;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: PARA BİRİMİ
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _paraBirimi(List<_Row> rows) {
+    // Önce alt kısımlara bak (toplam yakınında)
+    for (int i = rows.length - 1; i >= 0; i--) {
+      final m = _paraBirimiReg.firstMatch(rows[i].upper);
+      if (m != null) {
+        String birim = m.group(1)!.toUpperCase();
+        if (birim == '₺' || birim.contains('TURK') || birim == 'TRY') {
+          birim = 'TL';
+        } else if (birim == 'EURO') {
+          birim = 'EUR';
+        }
+        return _Field(birim, 0.92);
+      }
+    }
+    return const _Field('TL', 0.50); // Varsayılan TL
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: YAKIT FİŞİ DETAYLARI (Pompa, Litre, Tür, Plaka)
+  // ═══════════════════════════════════════════════════════════════════
+  static Map<String, String?> _yakitDetay(List<_Row> rows) {
+    String? turu;
+    String? litre;
+    String? pompa;
+    String? plaka;
+
+    for (final row in rows) {
+      final u = row.upper;
+      final cleaned = _ocrClean(row.text);
+
+      // Yakıt türü
+      if (turu == null) {
+        final m = _yakitTuruReg.firstMatch(u);
+        if (m != null) {
+          turu = m
+              .group(1)!
+              .toUpperCase()
+              .replaceAll('MOTORIN', 'Motorin')
+              .replaceAll('MOTORİN', 'Motorin')
+              .replaceAll('BENZIN', 'Benzin')
+              .replaceAll('BENZİN', 'Benzin')
+              .replaceAll('DIESEL', 'Dizel')
+              .replaceAll('DİZEL', 'Dizel');
+        }
+      }
+
+      // Litre
+      if (litre == null) {
+        final m = _litreReg.firstMatch(cleaned);
+        if (m != null) {
+          litre = '${m.group(1)!.replaceAll('.', ',')} L';
+        }
+      }
+
+      // Pompa
+      if (pompa == null) {
+        final m = _pompaReg.firstMatch(cleaned);
+        if (m != null) pompa = m.group(1)!;
+      }
+
+      // Plaka (sadece yakıt fişlerinde geçerli, başka yerde olabilir ama yine de al)
+      if (plaka == null) {
+        final m = _plakaReg.firstMatch(u);
+        if (m != null) {
+          plaka = '${m.group(1)!} ${m.group(2)!} ${m.group(3)!}';
+        }
+      }
+    }
+
+    return {'turu': turu, 'litre': litre, 'pompa': pompa, 'plaka': plaka};
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // YENİ: TELEFON
+  // ═══════════════════════════════════════════════════════════════════
+  static _Field _telefon(List<_Row> rows) {
+    for (int i = 0; i < rows.length && i < 10; i++) {
+      final m = _telefonReg.firstMatch(rows[i].text);
+      if (m != null) {
+        return _Field(
+          m.group(1)!.replaceAll(' ', '').replaceAll('-', ''),
+          0.85,
+        );
       }
     }
     return _Field.empty;

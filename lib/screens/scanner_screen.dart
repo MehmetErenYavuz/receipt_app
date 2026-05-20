@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/camera_service.dart';
 import '../services/ocr_service.dart';
 import '../services/image_processor.dart';
 import '../utils/receipt_parser.dart';
 import '../widgets/result_sheet.dart';
-import '../utils/database_helper.dart'; // YENİ: Veritabanı importu
+import '../utils/database_helper.dart';
+import '../main.dart'; // AppColors
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
+
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
 }
@@ -29,6 +32,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void initState() {
     super.initState();
+    // Kamera ekranında status bar'ı beyaz ikonlu yap
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
     _camera.initialize().then((_) {
       if (mounted) setState(() {});
     });
@@ -38,6 +48,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void dispose() {
     _focusTimer?.cancel();
     _camera.dispose();
+    // Status bar'ı eski haline döndür
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
     super.dispose();
   }
 
@@ -62,37 +79,50 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ? await ImageProcessor.enhanceForGallery(file)
           : await ImageProcessor.enhanceForCamera(file);
       final ocr = await _ocr.processImage(enhanced);
-      // YENİ: enhanced.path parametresi ile fotoğrafın yolunu iletiyoruz
       if (mounted && ocr != null) _showResult(ocr, enhanced.path);
     } finally {
       if (mounted) setState(() => _processing = false);
     }
   }
 
-  // YENİ: imagePath parametresi eklendi
   void _showResult(RecognizedText ocr, String imagePath) {
     final data = ReceiptParser.parse(ocr);
-    data.imagePath = imagePath; // Fotoğrafı fiş modeline ekle
+    data.imagePath = imagePath;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.88,
+        initialChildSize: 0.92,
         minChildSize: 0.5,
         maxChildSize: 0.97,
         builder: (_, ctrl) => ResultSheet(
           data: data,
           onSave: () async {
-            // VERİTABANINA KAYDET
             await DatabaseHelper().insertReceipt(data);
-
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fiş Başarıyla Kaydedildi!')),
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: Colors.amber),
+                      SizedBox(width: 10),
+                      Text(
+                        'Fiş başarıyla kaydedildi',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: Colors.lightBlue),
+                  ),
+                ),
               );
-              Navigator.pop(context); // Kameradan Ana Menüye geri dön
+              Navigator.pop(context);
             }
           },
           onEdit: () {},
@@ -107,7 +137,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
-          child: CircularProgressIndicator(color: Colors.blueAccent),
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2.5,
+          ),
         ),
       );
     }
@@ -116,7 +149,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Kamera
+          // ── Kamera Önizleme ──
           LayoutBuilder(
             builder: (ctx, c) => GestureDetector(
               onTapDown: (d) => _onTap(d, c),
@@ -128,156 +161,303 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
 
-          // Kılavuz çerçeve
+          // ── Kılavuz Çerçeve (Premium tasarım) ──
           Center(
             child: IgnorePointer(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.88,
-                height: MediaQuery.of(context).size.height * 0.58,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.greenAccent.withOpacity(0.6),
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: Text(
-                      'Fişi çerçeve içine hizalayın',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Odak karesi
-          if (_focusPoint != null)
-            Positioned(
-              left: _focusPoint!.dx - 30,
-              top: _focusPoint!.dy - 30,
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white70, width: 1.5),
-                ),
-              ),
-            ),
-
-          // Flash butonu
-          Positioned(
-            top: 50,
-            right: 20,
-            child: IconButton(
-              icon: Icon(
-                _flashOn ? Icons.flash_on : Icons.flash_off,
-                color: Colors.white,
-                size: 28,
-              ),
-              onPressed: () {
-                setState(() => _flashOn = !_flashOn);
-                _camera.toggleFlash(_flashOn ? FlashMode.torch : FlashMode.off);
-              },
-            ),
-          ),
-
-          // İşlem göstergesi
-          if (_processing)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.86,
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Stack(
                   children: [
-                    CircularProgressIndicator(color: Colors.blueAccent),
-                    SizedBox(height: 16),
-                    Text(
-                      'Analiz ediliyor...',
-                      style: TextStyle(color: Colors.white),
+                    // 4 köşe işaretleyici (L şeklinde köşeler)
+                    _cornerMarker(top: 0, left: 0, rotation: 0),
+                    _cornerMarker(top: 0, right: 0, rotation: 1),
+                    _cornerMarker(bottom: 0, left: 0, rotation: 3),
+                    _cornerMarker(bottom: 0, right: 0, rotation: 2),
+                    // Üst tarafta ipucu
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.55),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Fişi çerçeve içine hizalayın',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
+          ),
 
-          // Alt kontroller
-          if (!_processing)
+          // ── Odak Karesi ──
+          if (_focusPoint != null)
             Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Galeri
-                  _CircleBtn(
-                    icon: Icons.photo_library_outlined,
-                    onTap: () async {
-                      final f = await _picker.pickImage(
-                        source: ImageSource.gallery,
-                      );
-                      if (f != null) await _processImage(f, fromGallery: true);
-                    },
-                  ),
-
-                  // Deklanşör
-                  GestureDetector(
-                    onTap: () async {
-                      final f = await _camera.takePicture();
-                      if (f != null) await _processImage(f);
-                    },
-                    child: Container(
-                      width: 78,
-                      height: 78,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.blueAccent.withOpacity(0.85),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 38,
-                      ),
+              left: _focusPoint!.dx - 30,
+              top: _focusPoint!.dy - 30,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 1.4, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                builder: (_, scale, __) => Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
+                ),
+              ),
+            ),
 
-                  // YENİ: Geçmiş Butonu artık Ana Menüye dönecek
-                  _CircleBtn(
-                    icon: Icons.history,
+          // ── Üst Bar: Kapat + Flash ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _CircleIconButton(
+                    icon: Icons.close_rounded,
                     onTap: () => Navigator.pop(context),
                   ),
+                  _CircleIconButton(
+                    icon: _flashOn
+                        ? Icons.flash_on_rounded
+                        : Icons.flash_off_rounded,
+                    isActive: _flashOn,
+                    onTap: () {
+                      setState(() => _flashOn = !_flashOn);
+                      _camera.toggleFlash(
+                        _flashOn ? FlashMode.torch : FlashMode.off,
+                      );
+                    },
+                  ),
                 ],
+              ),
+            ),
+          ),
+
+          // ── İşlem Göstergesi ──
+          if (_processing)
+            Container(
+              color: Colors.black.withOpacity(0.7),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 28,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: CircularProgressIndicator(
+                          color: Colors.amber,
+                          strokeWidth: 3,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Analiz ediliyor',
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Bu işlem birkaç saniye sürebilir',
+                        style: TextStyle(color: Colors.cyan, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          // ── Alt Kontroller ──
+          if (!_processing)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  16,
+                  24,
+                  MediaQuery.of(context).viewPadding.bottom + 20,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Galeri
+                    _CircleIconButton(
+                      icon: Icons.photo_library_outlined,
+                      size: 56,
+                      onTap: () async {
+                        final f = await _picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (f != null)
+                          await _processImage(f, fromGallery: true);
+                      },
+                    ),
+
+                    // Deklanşör (premium tasarım)
+                    GestureDetector(
+                      onTap: () async {
+                        final f = await _camera.takePicture();
+                        if (f != null) await _processImage(f);
+                      },
+                      child: Container(
+                        width: 76,
+                        height: 76,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 4,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Geri
+                    _CircleIconButton(
+                      icon: Icons.history_rounded,
+                      size: 56,
+                      onTap: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
       ),
     );
   }
+
+  // ── L şeklinde köşe işaretleyicisi ──
+  Widget _cornerMarker({
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    required int rotation,
+  }) {
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: Transform.rotate(
+        angle: rotation * 1.5708, // 90 derece * rotation
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Colors.white, width: 3),
+              left: BorderSide(color: Colors.white, width: 3),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _CircleBtn extends StatelessWidget {
+// ═══════════════════════════════════════════════════════════════════════
+// PREMIUM YUVARLAK BUTON
+// ═══════════════════════════════════════════════════════════════════════
+class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _CircleBtn({required this.icon, required this.onTap});
+  final double size;
+  final bool isActive;
+
+  const _CircleIconButton({
+    required this.icon,
+    required this.onTap,
+    this.size = 44,
+    this.isActive = false,
+  });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white12,
-        border: Border.all(color: Colors.white24),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isActive ? Colors.white : Colors.black.withOpacity(0.45),
+          border: Border.all(
+            color: Colors.white.withOpacity(isActive ? 1 : 0.25),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: isActive ? Colors.black : Colors.white,
+          size: size * 0.45,
+        ),
       ),
-      child: Icon(icon, color: Colors.white, size: 26),
-    ),
-  );
+    );
+  }
 }
