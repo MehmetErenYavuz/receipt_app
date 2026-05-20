@@ -354,7 +354,6 @@ class ReceiptParser {
     'TÜRKSAT': 'Faturalar',
     'TURKSAT': 'Faturalar',
     'TURK TELEKOM': 'Faturalar',
-    'TÜRK TELEKOM': 'Faturalar',
     'TTNET': 'Faturalar',
     'SUPERONLINE': 'Faturalar',
   };
