@@ -7,6 +7,7 @@ import '../services/ocr_service.dart';
 import '../services/image_processor.dart';
 import '../utils/receipt_parser.dart';
 import '../widgets/result_sheet.dart';
+import '../utils/database_helper.dart'; // YENİ: Veritabanı importu
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -61,14 +62,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ? await ImageProcessor.enhanceForGallery(file)
           : await ImageProcessor.enhanceForCamera(file);
       final ocr = await _ocr.processImage(enhanced);
-      if (mounted && ocr != null) _showResult(ocr);
+      // YENİ: enhanced.path parametresi ile fotoğrafın yolunu iletiyoruz
+      if (mounted && ocr != null) _showResult(ocr, enhanced.path);
     } finally {
       if (mounted) setState(() => _processing = false);
     }
   }
 
-  void _showResult(RecognizedText ocr) {
+  // YENİ: imagePath parametresi eklendi
+  void _showResult(RecognizedText ocr, String imagePath) {
     final data = ReceiptParser.parse(ocr);
+    data.imagePath = imagePath; // Fotoğrafı fiş modeline ekle
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -79,10 +84,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         maxChildSize: 0.97,
         builder: (_, ctrl) => ResultSheet(
           data: data,
-          onSave: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kaydedildi! (SQLite TODO)')),
-            );
+          onSave: () async {
+            // VERİTABANINA KAYDET
+            await DatabaseHelper().insertReceipt(data);
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Fiş Başarıyla Kaydedildi!')),
+              );
+              Navigator.pop(context); // Kameradan Ana Menüye geri dön
+            }
           },
           onEdit: () {},
         ),
@@ -236,8 +247,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ),
 
-                  // Geçmiş (TODO)
-                  _CircleBtn(icon: Icons.history, onTap: () {}),
+                  // YENİ: Geçmiş Butonu artık Ana Menüye dönecek
+                  _CircleBtn(
+                    icon: Icons.history,
+                    onTap: () => Navigator.pop(context),
+                  ),
                 ],
               ),
             ),

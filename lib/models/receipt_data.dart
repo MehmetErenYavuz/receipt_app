@@ -25,8 +25,9 @@ class ReceiptData {
   String odemeYontemi;
   String paraUstu;
 
-  // ── Sınıflandırma ───────────────────────────────────────────────
+  // ── Sınıflandırma ve Medya ──────────────────────────────────────
   String kategori;
+  String? imagePath; // YENİ: Fotoğrafın telefondaki konumu
 
   // ── Kalite ──────────────────────────────────────────────────────
   Map<String, double> confidenceScores;
@@ -50,6 +51,7 @@ class ReceiptData {
     this.odemeYontemi = '',
     this.paraUstu = '',
     this.kategori = 'Diğer',
+    this.imagePath,
     Map<String, double>? confidenceScores,
     this.uyari,
   }) : kdvDetay = kdvDetay ?? [],

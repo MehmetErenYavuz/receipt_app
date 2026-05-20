@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import '../models/receipt_data.dart';
-import '../models/kdv_item.dart';
+// Kendi proje adına göre ayarladığımız garanti import yolları:
+import 'package:receipt_app/models/receipt_data.dart';
+import 'package:receipt_app/models/kdv_item.dart';
+import 'package:receipt_app/extensions/string_extensions.dart'; // ── EKLENTİ BURADA ──
 
 // ═══════════════════════════════════════════════════════════════════════
 // YARDIMCI: Koordinat Tabanlı Satır
@@ -12,30 +14,24 @@ class _Row {
 
   _Row(this.yCenter, this.elements);
 
-  String get text => elements.map((e) => e.text).join(' ');
+  // ── MÜKEMMEL DOKUNUŞ: Satır oluşur oluşmaz 0/O, 9/0 gibi OCR hatalarını temizler ──
+  String get text => elements.map((e) => e.text).join(' ').fixOcrConfusion;
   String get upper => text.toUpperCase();
 
-  // Satırdaki tüm fiyat eşleşmeleri
   List<String> allPrices(RegExp reg) =>
       reg.allMatches(text).map((m) => m.group(0)!).toList();
 
-  // En sağdaki fiyat — hem element bazlı hem full-text tarama
   String? rightmostPrice(RegExp reg) {
     for (int i = elements.length - 1; i >= 0; i--) {
-      // OCR düzeltmesi uygulanmış metni tara
-      final cleaned = _ocrClean(elements[i].text);
+      final cleaned = _ocrClean(elements[i].text.fixOcrConfusion);
       if (reg.hasMatch(cleaned)) return cleaned;
     }
-    // Eleman bazlı bulamazsa full text'te ara (OCR birleştirme hataları için)
     final cleaned = _ocrClean(text);
     final all = reg.allMatches(cleaned).map((m) => m.group(0)!).toList();
     return all.isNotEmpty ? all.last : null;
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// YARDIMCI: Güven Skorlu Alan
-// ═══════════════════════════════════════════════════════════════════════
 class _Field {
   final String value;
   final double confidence;
@@ -47,17 +43,11 @@ class _Field {
 
 // ═══════════════════════════════════════════════════════════════════════
 // GLOBAL OCR DÜZELTME FONKSİYONU
-// Türk termal yazıcılarının en sık yaptığı karışıklıkları düzeltir
 // ═══════════════════════════════════════════════════════════════════════
 String _ocrClean(String raw) {
-  // 1. Asterisk (*) → boşluk (Türk fişlerinde tutar öneki: *170,00)
-  //    Asterisk'i koruyoruz sadece fiyat regex'i için soyutluyoruz
   String s = raw;
 
-  // 2. Fiyat bağlamında harf-rakam karışıklıkları
-  //    Örn: "17O,00" → "170,00" (O harfi sıfır)
-  //    Örn: "1B5,00" → "185,00" (B → 8, sadece rakam bağlamında)
-  //    Sadece sayı-virgül-nokta bloklarında uygula
+  // Fiyat bağlamında harf-rakam karışıklıkları
   s = s.replaceAllMapped(
     RegExp(r'\d[OoIlBSGZqQ.,]\d|\d[OoIlBSGZqQ]\d{2}[.,]'),
     (m) {
@@ -76,46 +66,38 @@ String _ocrClean(String raw) {
     },
   );
 
-  // 3. Noktalı virgül → iki nokta (saat formatında: 14;35 → 14:35)
-  //    Zaten varolan mantık korunuyor
-
   return s;
 }
 
-// Tam satır OCR temizleme
 String _cleanRow(String raw) {
   return _ocrClean(raw);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// ANA PARSER
-// Türkiye ÖKC / e-Fatura / e-Arşiv / Serbest Meslek / Banka Dekontu
-// GİB VUK 435 + YN ÖKC Kılavuzu + 12 fiş örneği analizi
+// ANA PARSER (TÜRKİYE ÖKC, E-ARŞİV, YEMEK KARTI, AKARYAKIT, İPTAL UYUMLU)
 // ═══════════════════════════════════════════════════════════════════════
 class ReceiptParser {
-  // ─── TOPLAM keyword sözlüğü ─────────────────────────────────────────
-  // Image 12 (Akköprü): sadece "TOP" yazıyor → eklendi
-  // Image 3, 9, 12: "TOPLAM" standart
-  // Image 2 sağ (BİM): "Odenecek KDV Dahil Tutar" → eklendi
-  // Image 11 sağ (İnci Çiçek): "TOPLAM" standart
   static const List<String> _totalKw = [
-    'TOPLAM', 'GENEL TOPLAM', 'G.TOPLAM', 'GENEL TOP',
-    'TOP', // Image 12: Akköprü kısa format
-    'TOPTUTAR', // bazı yazılımlar
-    'SATIS TOP', 'SATISTOPLAM',
-    'ODENEN', 'ÖDENECEK', 'ÖDENENTOP',
-    'TAHSIL', 'TAHSİL',
-    'ODENECEK KDV DAHIL TUTAR', // BİM e-arşiv format (Image 2)
+    'TOPLAM',
+    'GENEL TOPLAM',
+    'G.TOPLAM',
+    'GENEL TOP',
+    'TOP',
+    'TOPTUTAR',
+    'SATIS TOP',
+    'SATISTOPLAM',
+    'ODENEN',
+    'ÖDENECEK',
+    'ÖDENENTOP',
+    'ODENECEK TUTAR',
+    'TAHSIL',
+    'TAHSİL',
+    'ODENECEK KDV DAHIL TUTAR',
     'TUTAR',
     'TOPLAM TUTAR',
-    'Toplam Tutar', // bazı küçük işletme yazılımları
+    'Toplam Tutar',
   ];
 
-  // ─── KDV keyword sözlüğü ────────────────────────────────────────────
-  // Image 3, 9, 12: "KDV" tek başına
-  // Image 4, 8: "TOPKDV"
-  // Image 2 sağ (BİM): "TOPLAM KDV"
-  // Image 11 sağ (İnci Çiçek): "TOPLAM KDV"
   static const List<String> _kdvKw = [
     'TOPKDV',
     'TOP KDV',
@@ -123,18 +105,14 @@ class ReceiptParser {
     'KDV TOPLAM',
     'K.D.V',
     'K.D.V.',
-    'KDV', // Doğrudan KDV yazımını ekledik
+    'KDV',
     'KATMA DEGER',
     'KATMA DEĞER',
     'TOPLAM KDV TUTARI',
     'Toplam KDV',
+    'KDV TUTARI',
   ];
 
-  // ─── Ödeme yöntemi ──────────────────────────────────────────────────
-  // Image 2 sol (Hacizade): "KREDI" + banka logosu
-  // Image 3 (SUAL GIDA): "Banka/Kredi Kartı"
-  // Image 6 üst: "TEMASSIZ İŞLEM"
-  // Image 9 sol: "KREDI" + TEB
   static const List<String> _paymentKw = [
     'NAKİT',
     'NAKIT',
@@ -146,15 +124,30 @@ class ReceiptParser {
     'TEMASSIZ',
     'TEMASSIZ KART',
     'TEMASSIZ İŞLEM',
+    'MULTINET',
+    'MULTİNET',
+    'SODEXO',
+    'PLUXEE',
+    'TICKET',
+    'TİCKET',
+    'EDENRED',
+    'SETCARD',
+    'METROPOL',
+    'PAYE',
+    'TOKENFLEX',
+    'YEMEK KARTI',
+    'YEMEK CEKI',
+    'YEMEK ÇEKİ',
     'HEDİYE ÇEKİ',
     'HEDIYE CEKI',
     'EFT',
     'EFT-POS',
     'HAVALE',
+    'FAST',
     'KART',
   ];
 
-  // ─── Atlanacak satırlar ──────────────────────────────────────────────
+  // ── YENİ: İNDİRİM, PUAN, ETTN ve DİĞER VERİ ÇÖPLERİ EKLENDİ ──
   static const List<String> _skipKw = [
     'T.C.', 'www.', 'http', 'MALİ DEĞER', 'MALI DEGER',
     'MALİ SEMBOL', 'EKÜ', 'EKU', 'TESEKKUR', 'TEŞEKKÜR',
@@ -162,13 +155,16 @@ class ReceiptParser {
     'TUTAR KARSILIGI', 'TUTAR KARŞILIĞI',
     'MUSTERI NUSHASI', 'MÜŞTERİ NÜSHASI',
     'KART HAMİLİ', 'KART HAMILI',
-    // Banka POS dekontu satırları — bunlar fiş değil
     'İŞLEMİNİZ ONAYLANDI', 'ISLEMINIZ ONAYLANDI',
-    'BANKA REFERANS', 'ONAY KODU',
-    'ACQUIRER ID',
+    'BANKA REFERANS', 'ONAY KODU', 'ACQUIRER ID',
+    'YİNE BEKLERİZ', 'YINE BEKLERIZ', 'AFİYET OLSUN', 'AFIYET OLSUN',
+    'İYİ GÜNLER', 'IYI GUNLER', 'HOŞGELDİNİZ', 'HOSGELDINIZ',
+    'MÜŞTERİ', 'MUSTERI', 'LÜTFEN', 'LUTFEN', 'BİLGİ FİŞİ', 'BILGI FISI',
+    'MERSİS', 'MERSIS', 'IBAN', 'TR',
+    'İNDİRİM', 'INDIRIM', 'PUAN', 'MONEY', 'KAZANCINIZ', // Market çöpleri
+    'ETTN', // e-Arşiv 32 Haneli UUID Kodu
   ];
 
-  // ─── Belge türü ──────────────────────────────────────────────────────
   static const Map<String, String> _belgeKw = {
     'E-ARSIV FATURA': 'e-Arşiv Fatura',
     'E-ARŞİV FATURA': 'e-Arşiv Fatura',
@@ -180,67 +176,97 @@ class ReceiptParser {
     'ÖKC FİŞİ': 'ÖKC Fişi',
   };
 
-  // ─── Kategori haritası ──────────────────────────────────────────────
   static const Map<String, String> _kategoriMap = {
-    // Market
-    'MİGROS': 'Market', 'MIGROS': 'Market',
-    'BİM': 'Market', 'BIM': 'Market',
-    'A101': 'Market', 'A 101': 'Market',
-    'ŞOK': 'Market', 'SOK': 'Market',
-    'CARREFOUR': 'Market', 'FILE': 'Market',
-    'METRO MARKET': 'Market', 'MAKRO': 'Market',
-    'HAKMAR': 'Market', 'ÖZDILEK': 'Market',
-    'GRATIS': 'Market', // Image 5: Gratis kozmetik market
-    // Yakıt
-    'SHELL': 'Yakıt', 'OPET': 'Yakıt', 'BP': 'Yakıt',
-    'TOTAL': 'Yakıt', 'LUKOIL': 'Yakıt', 'PETROL': 'Yakıt',
-    'AKARYAKIT': 'Yakıt', 'MOİL': 'Yakıt', 'MOIL': 'Yakıt',
-    'AUTOPAS': 'Yakıt', 'ALTINPA': 'Yakıt', // Image 10: Altınpa Petrol
-    // Yeme-İçme
-    'MCDONALDS': 'Yeme-İçme', 'MCDONALD': 'Yeme-İçme',
-    'BURGER': 'Yeme-İçme', 'PIZZA': 'Yeme-İçme',
-    'RESTORAN': 'Yeme-İçme', 'RESTAURANT': 'Yeme-İçme',
-    'CAFE': 'Yeme-İçme', 'KAFETERYA': 'Yeme-İçme',
-    'KAHVE': 'Yeme-İçme', 'COFFEE': 'Yeme-İçme',
-    'KUNEFE': 'Yeme-İçme', 'DÖNER': 'Yeme-İçme',
-    'PIDE': 'Yeme-İçme', 'KEBAP': 'Yeme-İçme',
-    'LOKANTA': 'Yeme-İçme', 'STARBUCKS': 'Yeme-İçme',
-    'KONAK CAFE': 'Yeme-İçme', // Image 2 orta
-    'FERROVIA': 'Yeme-İçme', // Image 9 sol — restoran
-    'EKREM COSKUN': 'Yeme-İçme', // Image 9, 11
-    'MACKBEAR': 'Yeme-İçme', // Image 9, 10: Mackbear Coffee
-    'PEK DÖNER': 'Yeme-İçme', // Image 9, 12
-    'CAFFE DI': 'Yeme-İçme', // Image 11, 12: Caffe Di Fiore
-    'MIDYECI': 'Yeme-İçme', // Image 6
-    'ANADOLU REST': 'Yeme-İçme', // Image 4
-    'HACIZADE': 'Yeme-İçme', // Image 2 sol
-    // Sağlık
-    'ECZANE': 'Sağlık', 'PHARMACY': 'Sağlık',
-    'HASTANE': 'Sağlık', 'KLİNİK': 'Sağlık',
-    // Elektronik
-    'TEKNOSA': 'Elektronik', 'MEDIAMARKT': 'Elektronik',
-    'VATAN': 'Elektronik', 'TURKCELL': 'Elektronik',
-    // Giyim
-    'LC WAIKIKI': 'Giyim', 'LCWAIKIKI': 'Giyim',
-    'ZARA': 'Giyim', 'H&M': 'Giyim', 'MANGO': 'Giyim',
-    'KOTON': 'Giyim', 'DEFACTO': 'Giyim',
-    'NINE WEST': 'Giyim', // Image 1
-    // Ulaşım
-    'TAXI': 'Ulaşım', 'TAKSİ': 'Ulaşım',
-    'OTOPARK': 'Ulaşım', 'SIPAY': 'Ulaşım', // Image 6 üst: Sipay taksi
-    // Çiçek
-    'ÇİÇEK': 'Diğer', 'CICEK': 'Diğer',
-    'İNCİ ÇİÇEK': 'Diğer', // Image 11 sağ
+    'MİGROS': 'Market',
+    'MIGROS': 'Market',
+    'BİM': 'Market',
+    'BIM': 'Market',
+    'A101': 'Market',
+    'A 101': 'Market',
+    'ŞOK': 'Market',
+    'SOK': 'Market',
+    'CARREFOUR': 'Market',
+    'FILE': 'Market',
+    'FİLE': 'Market',
+    'METRO MARKET': 'Market',
+    'MAKRO': 'Market',
+    'HAKMAR': 'Market',
+    'ÖZDILEK': 'Market',
+    'GRATIS': 'Market',
+    'WATSONS': 'Market',
+    'SHELL': 'Yakıt',
+    'OPET': 'Yakıt',
+    'BP': 'Yakıt',
+    'TOTAL': 'Yakıt',
+    'LUKOIL': 'Yakıt',
+    'PETROL': 'Yakıt',
+    'AKARYAKIT': 'Yakıt',
+    'MOİL': 'Yakıt',
+    'MOIL': 'Yakıt',
+    'AUTOPAS': 'Yakıt',
+    'ALTINPA': 'Yakıt',
+    'MCDONALDS': 'Yeme-İçme',
+    'MCDONALD': 'Yeme-İçme',
+    'BURGER': 'Yeme-İçme',
+    'PIZZA': 'Yeme-İçme',
+    'RESTORAN': 'Yeme-İçme',
+    'RESTAURANT': 'Yeme-İçme',
+    'CAFE': 'Yeme-İçme',
+    'KAFETERYA': 'Yeme-İçme',
+    'KAHVE': 'Yeme-İçme',
+    'COFFEE': 'Yeme-İçme',
+    'KUNEFE': 'Yeme-İçme',
+    'DÖNER': 'Yeme-İçme',
+    'PIDE': 'Yeme-İçme',
+    'KEBAP': 'Yeme-İçme',
+    'LOKANTA': 'Yeme-İçme',
+    'STARBUCKS': 'Yeme-İçme',
+    'KONAK CAFE': 'Yeme-İçme',
+    'FERROVIA': 'Yeme-İçme',
+    'EKREM COSKUN': 'Yeme-İçme',
+    'MACKBEAR': 'Yeme-İçme',
+    'PEK DÖNER': 'Yeme-İçme',
+    'CAFFE DI': 'Yeme-İçme',
+    'MIDYECI': 'Yeme-İçme',
+    'ANADOLU REST': 'Yeme-İçme',
+    'HACIZADE': 'Yeme-İçme',
+    'KÖFTECİ YUSUF': 'Yeme-İçme',
+    'ECZANE': 'Sağlık',
+    'PHARMACY': 'Sağlık',
+    'HASTANE': 'Sağlık',
+    'KLİNİK': 'Sağlık',
+    'TEKNOSA': 'Elektronik',
+    'MEDIAMARKT': 'Elektronik',
+    'VATAN': 'Elektronik',
+    'TURKCELL': 'Elektronik',
+    'TÜRK TELEKOM': 'Elektronik',
+    'VODAFONE': 'Elektronik',
+    'LC WAIKIKI': 'Giyim',
+    'LCWAIKIKI': 'Giyim',
+    'ZARA': 'Giyim',
+    'H&M': 'Giyim',
+    'MANGO': 'Giyim',
+    'KOTON': 'Giyim',
+    'DEFACTO': 'Giyim',
+    'NINE WEST': 'Giyim',
+    'MAVİ': 'Giyim',
+    'BOYNER': 'Giyim',
+    'TAXI': 'Ulaşım',
+    'TAKSİ': 'Ulaşım',
+    'OTOPARK': 'Ulaşım',
+    'SIPAY': 'Ulaşım',
+    'TCDD': 'Ulaşım',
+    'İDO': 'Ulaşım',
+    'IDO': 'Ulaşım',
+    'ÇİÇEK': 'Diğer',
+    'CICEK': 'Diğer',
+    'İNCİ ÇİÇEK': 'Diğer',
   };
 
-  // Fiyat regex — ASTERISK (*) ÖNEKİNE DİKKAT
-  // Türk fişlerinde tutar formatı: *170,00 veya *1.170,00 veya 170,00
-  // Asterisk'li ve asterisksiz her iki formatı da yakala
   static final RegExp _priceReg = RegExp(
     r'\*?\d{1,3}(?:\.\d{3})*[.,]\d{2}(?!\d)',
   );
 
-  // Sadece rakam-virgül/nokta formatı (asterisk olmadan, normalize için)
   static final RegExp _numOnlyReg = RegExp(
     r'\d{1,3}(?:\.\d{3})*[.,]\d{2}(?!\d)',
   );
@@ -252,14 +278,21 @@ class ReceiptParser {
     final rows = _buildRows(ocr);
     if (rows.isEmpty) return ReceiptData(uyari: 'Metin okunamadı.');
 
-    // Mali değeri olmayan belgeler (taksi POS fişi vb.)
+    // ── YENİ: İPTAL / İADE FİŞİ KONTROLÜ ──
+    final bool isIptal = rows.any(
+      (r) =>
+          r.upper.contains('İPTAL') ||
+          r.upper.contains('IPTAL') ||
+          r.upper.contains('İADE FİŞİ') ||
+          r.upper.contains('IADE FISI'),
+    );
+
     final bool maliDegeriYok = rows.any(
       (r) =>
           r.upper.contains('MALİ DEĞERİ YOKTUR') ||
           r.upper.contains('MALI DEGERI YOKTUR'),
     );
 
-    // Banka dekontu mu? (Kart işlemi bilgi fişi — fiş değil)
     final bool isBankaDekontu = _isBankaDekontu(rows);
 
     final firma = _firma(rows);
@@ -289,7 +322,11 @@ class ReceiptParser {
     };
 
     String? uyari;
-    if (maliDegeriYok) {
+    if (isIptal) {
+      // İptal/İade uyarısı en yüksek önceliklidir
+      uyari =
+          'DİKKAT: Bu bir İPTAL veya İADE belgesidir. Gider olarak kaydedilemez!';
+    } else if (maliDegeriYok) {
       uyari = 'Bu fiş Mali Değeri Yoktur — vergi belgesi değildir.';
     } else if (isBankaDekontu) {
       uyari =
@@ -300,17 +337,15 @@ class ReceiptParser {
       uyari = 'Toplam tutar düşük güvenle okundu. Kontrol önerilir.';
     }
 
-    // ── KDV / TOPLAM MATEMATİKSEL SAĞLAMA (ZORUNLU FİLTRE) ──
     String finalToplamKdv = topKdv.value;
     String finalToplamTutar = toplam.value;
 
+    // ── KDV / TOPLAM MATEMATİKSEL SAĞLAMA MOTORU ──
     if (toplam.found) {
       double tVal = double.tryParse(toplam.value.replaceAll(',', '.')) ?? 0;
       double kVal = double.tryParse(topKdv.value.replaceAll(',', '.')) ?? 0;
 
-      // Eğer KDV toplamdan büyükse veya eşitse, OCR yanlış sayıları seçmiştir!
       if (kVal > 0 && tVal > 0 && kVal >= tVal) {
-        // Genel toplamı tekrar hesapla: KDV detaylarındaki tutarları topla
         double kdvDetayToplami = 0;
         for (var item in kdvDetay) {
           kdvDetayToplami +=
@@ -318,7 +353,6 @@ class ReceiptParser {
         }
 
         if (kdvDetayToplami > 0 && kdvDetayToplami < tVal) {
-          // Detaylardan KDV'yi kurtardık
           finalToplamKdv = kdvDetayToplami
               .toStringAsFixed(2)
               .replaceAll('.', ',');
@@ -326,16 +360,16 @@ class ReceiptParser {
               (uyari == null ? '' : uyari + '\n') +
               'KDV tutarı yanlış okundu, fiş detaylarından otomatik düzeltildi.';
         } else {
-          // İkisi de kurtarılamadıysa, sistemi hataya zorlama, tutarı temizle ki kullanıcı eliyle girsin
           finalToplamTutar = "";
-          uyari =
-              (uyari == null ? '' : uyari + '\n') +
-              'Tutar ve KDV fiziksel olarak imkansız (KDV >= Toplam). Lütfen elle giriniz.';
+          if (!isIptal) {
+            uyari =
+                (uyari == null ? '' : uyari + '\n') +
+                'Tutar ve KDV fiziksel olarak imkansız (KDV >= Toplam). Lütfen elle giriniz.';
+          }
         }
       }
     }
 
-    // Mey Studios Standartlarında Temiz Obje İadesi
     return ReceiptData(
       firmaAdi: firma.value,
       firmaAdresi: adres.value,
@@ -348,12 +382,12 @@ class ReceiptParser {
       tarih: tarih.value,
       saat: saat.value,
       kdvDetay: kdvDetay,
-      toplamKdv: finalToplamKdv, // Filtreden geçen temiz KDV
+      toplamKdv: finalToplamKdv,
       kdvHaricToplam: matrah.value,
-      toplamTutar: finalToplamTutar, // Filtreden geçen temiz Toplam
+      toplamTutar: finalToplamTutar,
       odemeYontemi: odeme.value,
       paraUstu: paraUstu.value,
-      kategori: _kategori(firma.value), // Akıllı kategori burada çalışıyor
+      kategori: _kategori(firma.value, odeme.value, rows),
       confidenceScores: scores,
       uyari: uyari,
     );
@@ -361,8 +395,6 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // BANKA DEKONTU TESPİTİ
-  // "İŞLEM TUTARI", "ONAY KODU", "BANKA REFERANS" gibi kelimeler varsa
-  // bu fiş değil banka pos dekontu
   // ═══════════════════════════════════════════════════════════════════
   static bool _isBankaDekontu(List<_Row> rows) {
     int bankaIndicators = 0;
@@ -374,7 +406,6 @@ class ReceiptParser {
       if (u.contains('BANKA REFERANS')) bankaIndicators++;
       if (u.contains('ACQUIRER')) bankaIndicators++;
       if (u.contains('AID:A0')) bankaIndicators++;
-      // 3+ banka göstergesi → büyük ihtimalle banka dekontu
       if (bankaIndicators >= 3) return true;
     }
     return false;
@@ -382,7 +413,6 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // SATIR İNŞA MOTORU
-  // Dinamik tolerance + OCR temizleme
   // ═══════════════════════════════════════════════════════════════════
   static List<_Row> _buildRows(RecognizedText ocr) {
     final rows = <_Row>[];
@@ -436,7 +466,6 @@ class ReceiptParser {
       if (t.length < 3 || _anyOf(u, _skipKw) || RegExp(r'^\d+$').hasMatch(t))
         continue;
 
-      // 1. Kurumsal İbare Puanı (+40)
       if (u.contains('A.S') ||
           u.contains('A.Ş') ||
           u.contains('LTD') ||
@@ -448,7 +477,6 @@ class ReceiptParser {
         score += 0.40;
       }
 
-      // 2. Bilinen Marka Puanı (+50) - Doğrudan Kategori Map'inden kontrol
       for (String brand in _kategoriMap.keys) {
         if (u.contains(brand)) {
           score += 0.50;
@@ -456,10 +484,8 @@ class ReceiptParser {
         }
       }
 
-      // 3. Konum Puanı (En üstteki satırlar daha değerlidir)
       score += (0.20 - (i * 0.03));
 
-      // 4. İstenmeyen Karakter Cezası (Telefon no, VKN falan varsa puan kır)
       if (RegExp(r'\d{5,}').hasMatch(t)) score -= 0.30;
       if (u.contains('VKN') || u.contains('V.D')) score -= 0.50;
 
@@ -469,7 +495,6 @@ class ReceiptParser {
       }
     }
 
-    // Eğer hiçbir yüksek puanlı satır bulamazsa ama markalardan biri direkt eşleşirse onu dön
     if (bestField.value.isEmpty || maxScore < 0.20) {
       for (int i = 0; i < rows.length && i < 5; i++) {
         for (String brand in _kategoriMap.keys) {
@@ -503,24 +528,21 @@ class ReceiptParser {
   static _Field _vergiDairesi(List<_Row> rows) {
     for (int i = 0; i < rows.length && i < 12; i++) {
       final u = rows[i].upper;
-      // Güçlü VD Tespiti
       if (u.endsWith(' VD') ||
           u.endsWith(' VD.') ||
           u.contains('V.D') ||
           u.contains('VERGI DAIRESI') ||
           u.contains('VERGİ DAİRESİ')) {
-        // Satırdan VKN, VD kelimesi ve sayılar hariç her şeyi al
         String cleaned = rows[i].text
             .replaceAll(
               RegExp(r'\bVERG[Iİ]\sDA[Iİ]RES[Iİ]\b', caseSensitive: false),
               '',
             )
             .replaceAll(RegExp(r'\bV\.?D\.?\b', caseSensitive: false), '')
-            .replaceAll(RegExp(r'\b\d{10,11}\b'), '') // VKN'yi sil
+            .replaceAll(RegExp(r'\b\d{10,11}\b'), '')
             .replaceAll(RegExp(r'VKN|TCKN|NO|:', caseSensitive: false), '')
             .trim();
 
-        // Eğer satırda sadece VD kelimesi varsa, VD ismi BİR ÜST satırdadır (VUK standardı)
         if (cleaned.length < 3 && i > 0) {
           cleaned = rows[i - 1].text.trim();
         }
@@ -533,18 +555,15 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // VKN / TC KİMLİK NO
-  // Image 2 orta (Konak Cafe): "FATSA V.D. T.C. NO 36413057324"
-  // Image 3: "SELÇUK VD 7811078852"
   // ═══════════════════════════════════════════════════════════════════
   static _Field _vergiNo(List<_Row> rows) {
-    // Kesinlikle 10 veya 11 hane olacak ve kelimenin sınırları belli olacak
     final reg = RegExp(r'\b([1-9]\d{9,10})\b');
 
     for (int i = 0; i < rows.length; i++) {
       final rowText = _ocrClean(rows[i].text);
       final u = rows[i].upper;
 
-      // Tarih veya Saat satırındaki sayıları atla
+      if (RegExp(r'\b\d{16}\b').hasMatch(rowText)) continue;
       if (RegExp(r'\b\d{2}[./-]\d{2}[./-]\d{4}\b').hasMatch(rowText)) continue;
       if (u.contains('FIS') || u.contains('Z NO')) continue;
 
@@ -556,7 +575,6 @@ class ReceiptParser {
             u.contains('VD') ||
             u.contains('TC') ||
             u.contains('NO');
-        // VKN bulunduğunda satır indeksini kaydedebiliriz, VD için kullanışlı olur.
         return _Field(num, labeled ? 0.98 : 0.85);
       }
     }
@@ -585,27 +603,24 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // FİŞ NO
-  // Image 2 sol: "FİŞ No 007x"
-  // Image 3: "Fiş No: 0085"
-  // Image 9 sol: "FİŞ NO : 0133"
   // ═══════════════════════════════════════════════════════════════════
   static _Field _fisNo(List<_Row> rows) {
-    // Türkçe karakter hatalarını (I, İ, S, Ş) ve boşlukları tolere eden güçlü regex
     final fisReg = RegExp(
       r'\b(?:F[Iİıi]S|F[Iİıi][SŞşs]|BELGE|ORD|F)\s*(?:NO)?\s*[:.\-]?\s*(\d{2,8})\b',
       caseSensitive: false,
     );
 
+    final eArsivReg = RegExp(r'\b([A-Z]{3}20\d{11})\b', caseSensitive: false);
+
     for (int i = 0; i < rows.length; i++) {
       final cleaned = _ocrClean(rows[i].text);
+
+      final eMatch = eArsivReg.firstMatch(cleaned);
+      if (eMatch != null) return _Field(eMatch.group(1)!.toUpperCase(), 0.99);
+
       final m = fisReg.firstMatch(cleaned);
       if (m != null) {
-        final val = m
-            .group(1)!
-            .replaceAll(
-              RegExp(r'^0+'),
-              '',
-            ); // Baştaki sıfırları sil (Örn: 0045 -> 45)
+        final val = m.group(1)!.replaceAll(RegExp(r'^0+'), '');
         if (val.isNotEmpty) return _Field(val, 0.95);
       }
     }
@@ -616,7 +631,6 @@ class ReceiptParser {
   // SERİ NO
   // ═══════════════════════════════════════════════════════════════════
   static _Field _seriNo(List<_Row> rows) {
-    // "SERI : A" veya "SERİ/SIRA : B" formatlarını yakalar
     final seriReg = RegExp(
       r'\bSER[Iİıi]\s*(?:\/\s*SIRA\s*)?(?:NO\s*)?[:.\-]?\s*([A-Za-z]{1,3})\b',
     );
@@ -629,8 +643,6 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // Z NO
-  // Image 2 sol: "Z No:1458"
-  // Image 3: "Z No: 0173"
   // ═══════════════════════════════════════════════════════════════════
   static _Field _zNo(List<_Row> rows) {
     final zReg = RegExp(
@@ -646,19 +658,8 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // TARİH
-  // Image 2 sol: "01/11/2025" (slash ayraçlı)
-  // Image 3: "08.11.2025"
-  // Image 9 sol: "07/11/2025"
-  // Image 2 orta: "29-11-2025" (tire ayraçlı)
-  // ═══════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════
-  // TARİH (GEMİNİ SEVİYESİ TOLERANS MOTORU)
-  // Gün/Ay/Yıl, Gün.Ay.Yıl, Gün-Ay-Yıl ve OCR Hatalarını (Virgül, Boşluk) Kapsar
   // ═══════════════════════════════════════════════════════════════════
   static _Field _tarih(List<_Row> rows) {
-    // 1. DİKKAT: \b (kelime sınırı) kaldırıldı.
-    // Ayraçlara OCR hataları olan virgül (,) ve iki nokta (:) eklendi.
     final dateReg = RegExp(
       r'(0?[1-9]|[12][0-9]|3[01])[\s.\-\/,:;]+(0?[1-9]|1[012])[\s.\-\/,:;]+(20[1-3][0-9]|[1-2][0-9])',
     );
@@ -667,32 +668,24 @@ class ReceiptParser {
       final u = rows[i].upper;
       String cleaned = _ocrClean(rows[i].text);
 
-      // GEMİNİ HİLESİ: OCR bazen sayıların arasına boşluk koyar (Örn: "1 2 . 0 4 . 2 0 2 6")
-      // Bu satırın tamamen boşluksuz bir kopyasını çıkarıp orada da arama yapacağız
       String noSpaces = cleaned.replaceAll(' ', '');
 
-      // Önce boşluksuz "saf" halinde ara
       Match? m = dateReg.firstMatch(noSpaces);
 
-      // Bulamazsa orijinal temizlenmiş halinde ara
       if (m == null) {
         m = dateReg.firstMatch(cleaned);
       }
 
       if (m != null) {
-        // Tarih parçalarını al ve tek haneli gün/ayları çift haneye tamamla (Örn: 5 -> 05)
         String gun = m.group(1)!.padLeft(2, '0');
         String ay = m.group(2)!.padLeft(2, '0');
         String yil = m.group(3)!;
 
-        // Yıl 2 haneli okunmuşsa (Örn: 25) başına 20 ekle
         if (yil.length == 2) yil = '20$yil';
 
         String raw = '$gun.$ay.$yil';
 
-        // Kusursuz tarih doğrulaması
         if (_validDate(raw)) {
-          // Satırda TARIH, TAR veya TRH kelimesi geçiyorsa bu %100 tarihtir
           final isExplicit = u.contains('TAR') || u.contains('TRH');
           return _Field(raw, isExplicit ? 0.99 : 0.90);
         }
@@ -703,12 +696,8 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // SAAT
-  // Image 2 sol: "13:48:03" (saniyeli)
-  // Image 3: "Saat: 16:06"
-  // Image 9: "18:58:51"
   // ═══════════════════════════════════════════════════════════════════
   static _Field _saat(List<_Row> rows) {
-    // Saniyeli format da yakala: HH:MM:SS
     final timeReg = RegExp(
       r'\b([01]?\d|2[0-3])[:;]([0-5]\d)(?:[:;][0-5]\d)?\b',
     );
@@ -729,23 +718,13 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // KDV ORAN DETAYLARI
-  // Image 2 sağ (BİM): "KDV MATRAH KDV TUTAR KDV DAHİL" tablo satırı
-  //   %1   51,49   *0,51   *52,00
-  //   %10  262,73  *26,27  *289,00
-  //   %20  0,42    *0,08   *0,50
-  // Image 3: "YIYECEK %10 *170,00" — satır formatı
-  // Image 4 sol (Migros): "KDV %20 *13,32 TOPLAM *79,90"
   // ═══════════════════════════════════════════════════════════════════
   static List<KdvItem> _kdvDetay(List<_Row> rows) {
     final items = <KdvItem>[];
     final foundOranlar = <String>{};
 
-    // Pattern 1: Satırda oran + KDV tutarı birlikte
-    // Örn: "YIYECEK %10 *170,00"  veya "%10 *12,73"
     final oranFiyatReg = RegExp(r'%\s*(\d{1,2})\b');
 
-    // Pattern 2: BİM e-arşiv tablo satırı
-    // "%1  51,49  *0,51  *52,00" — oran + matrah + kdv + kdvli
     final tableSatirReg = RegExp(
       r'%\s*(\d{1,2})\s+([\d.,]+)\s+\*?([\d.,]+)\s+\*?([\d.,]+)',
     );
@@ -754,15 +733,12 @@ class ReceiptParser {
       final u = row.upper;
       final cleaned = _ocrClean(row.text);
 
-      // TOPKDV satırlarını atla
       if (u.contains('TOPKDV') ||
           u.contains('TOP KDV') ||
           u.contains('TOPLAM KDV'))
         continue;
-      // KDV içermeyen satırları atla
       if (!u.contains('KDV') && !oranFiyatReg.hasMatch(cleaned)) continue;
 
-      // Pattern 2: BİM tablo satırı (3 tutar var)
       final m2 = tableSatirReg.firstMatch(cleaned);
       if (m2 != null) {
         final oran = m2.group(1)!;
@@ -779,20 +755,16 @@ class ReceiptParser {
         continue;
       }
 
-      // Pattern 1: Oran + tek fiyat
       final oranMatches = oranFiyatReg.allMatches(cleaned);
       for (final om in oranMatches) {
         final oran = om.group(1)!;
         if (foundOranlar.contains(oran)) continue;
 
-        // Bu satırdaki fiyatları bul
         final prices = row.allPrices(_priceReg);
-        // Asteriskli fiyatlar bu satırda KDV tutarıdır
         final kdvFiyat = prices
             .where((p) => p.startsWith('*'))
             .map((p) => p.substring(1))
             .firstOrNull;
-        // Asterisksiz fiyat matrah olabilir
         final matrahFiyat = prices.where((p) => !p.startsWith('*')).firstOrNull;
 
         if (kdvFiyat != null || matrahFiyat != null) {
@@ -817,7 +789,6 @@ class ReceiptParser {
   // TOPLAM KDV
   // ═══════════════════════════════════════════════════════════════════
   static _Field _toplamKdv(List<_Row> rows, List<KdvItem> detay) {
-    // Strateji A: "TOPKDV" veya "TOPLAM KDV" içeren satır
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
       if (!_anyOf(u, _kdvKw)) continue;
@@ -827,7 +798,6 @@ class ReceiptParser {
       if (p != null) return _Field(_normPrice(p), 0.95);
     }
 
-    // Strateji B: KDV detaylarından topla
     if (detay.isNotEmpty) {
       double total = 0;
       bool valid = true;
@@ -844,11 +814,10 @@ class ReceiptParser {
       }
     }
 
-    // Strateji C: Sadece "KDV" geçen satır (TOPLAM değil)
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
       if (!u.contains('KDV')) continue;
-      if (_anyOf(u, _totalKw)) continue; // TOPLAM ile birlikteşse atla
+      if (_anyOf(u, _totalKw)) continue;
       if (u.contains('TOPKDV')) continue;
 
       final cleaned = _ocrClean(rows[i].text);
@@ -879,19 +848,9 @@ class ReceiptParser {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // GENEL TOPLAM — 5 Kademeli Strateji
-  //
-  // TEMEL KURAL: KDV < TOPLAM olmalı. Eşitlerse veya KDV > TOPLAM ise
-  // alan ataması yanlış demektir.
-  //
-  // Image 3 (SUAL GIDA): "KDV *15,45 / TOPLAM *170,00" — ayrı satır
-  // Image 4 sol (Migros): "TOPKDV *13,32 / TOPLAM *79,90"
-  // Image 12 orta: "KDV *30,00 / TOP *330,00" — kısa "TOP"
-  // Image 2 sağ (BİM): "Odenecek KDV Dahil Tutar *341,50"
-  // Image 6 alt (Midyeci): "TOPLAM *930,00"
+  // GENEL TOPLAM (YENİ: Ara Toplam Koruması Eklendi)
   // ═══════════════════════════════════════════════════════════════════
   static _Field _toplam(List<_Row> rows, _Field kdv, bool isBankaDekontu) {
-    // Banka dekontu ise toplam yerine "İŞLEM TUTARI" alanını kullan
     if (isBankaDekontu) {
       for (int i = 0; i < rows.length; i++) {
         final u = rows[i].upper;
@@ -907,13 +866,17 @@ class ReceiptParser {
 
     _Field best = _Field.empty;
 
-    // ── Strateji 1: Açık etiketli TOPLAM satırı ──────────────────────
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
 
-      // TOPKDV satırlarını kesinlikle atla
+      // ── YENİ: ARA TOPLAM KORUMASI ──
+      // Eğer satırda "ARA" kelimesi geçiyorsa bu kesinlikle Genel Toplam değildir, atla.
+      if (u.contains('ARA TOP') ||
+          u.contains('ARATOP') ||
+          u.contains('ARA TOPLAM'))
+        continue;
+
       if (u.contains('TOPKDV') || u.contains('TOP KDV')) continue;
-      // KDV ile biten satırlar (ör: "TOPLAM KDV") atla
       if (_anyOf(u, _kdvKw) &&
           !_anyOf(u, ['ODENEN', 'ÖDENECEK', 'ODENECEK KDV DAHIL']))
         continue;
@@ -933,15 +896,12 @@ class ReceiptParser {
 
       final norm = _normPrice(p);
 
-      // KDV ile aynı değer → yanlış atama, atla
       if (kdv.found && norm == kdv.value) continue;
-      // KDV'den küçükse → tutarsız, güveni düşür
       final kdvVal = double.tryParse(kdv.value) ?? 0;
       final toplamVal = double.tryParse(norm) ?? 0;
       if (kdv.found && toplamVal < kdvVal && toplamVal > 0) continue;
 
       final exactMatch = _anyOf(u, _totalKw);
-      // "TOP" kısa eşleşmesi daha az güvenilir
       final isShortMatch =
           u.trim() == 'TOP' ||
           u.trim().startsWith('TOP ') ||
@@ -958,13 +918,11 @@ class ReceiptParser {
 
     if (best.confidence >= 0.70) return best;
 
-    // ── Strateji 2: VUK 435 sırası — TOPKDV'nin hemen altı ──────────
     for (int i = 0; i < rows.length - 1; i++) {
       final u = rows[i].upper;
       if (u.contains('TOPKDV') || _anyOf(u, _kdvKw)) {
         for (int j = i + 1; j <= i + 3 && j < rows.length; j++) {
           final jU = rows[j].upper;
-          // TOPLAM/TOP satırı ise veya fiyat varsa
           if (_anyOf(jU, _totalKw) || _priceReg.hasMatch(rows[j].text)) {
             final cleaned = _ocrClean(rows[j].text);
             final p = _findRightmostPrice(cleaned, _priceReg);
@@ -982,7 +940,6 @@ class ReceiptParser {
 
     if (best.confidence >= 0.60) return best;
 
-    // ── Strateji 3: "KDV Dahil Tutar" veya ödeme satırı ─────────────
     for (int i = rows.length - 1; i >= 0; i--) {
       final u = rows[i].upper;
       if (u.contains('KDV DAHİL') ||
@@ -1000,8 +957,6 @@ class ReceiptParser {
 
     if (best.confidence >= 0.55) return best;
 
-    // ── Strateji 4: "SATIŞ" bloğu altındaki tutar ───────────────────
-    // Banka pos fişlerinde "SATIŞ / **** *** 1234 / TUTAR / 170,00 TL"
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
       if (u.trim() == 'SATIŞ' || u.trim() == 'SATIS') {
@@ -1022,7 +977,6 @@ class ReceiptParser {
 
     if (best.confidence >= 0.50) return best;
 
-    // ── Strateji 5 (Fallback): Fişin son %35'indeki en büyük tutar ──
     final startIdx = (rows.length * 0.65).round();
     double maxAmt = 0;
     String maxP = '';
@@ -1078,11 +1032,45 @@ class ReceiptParser {
   // ═══════════════════════════════════════════════════════════════════
   // KATEGORİ
   // ═══════════════════════════════════════════════════════════════════
-  static String _kategori(String firmaAdi) {
+  static String _kategori(
+    String firmaAdi,
+    String odemeYontemi,
+    List<_Row> rows,
+  ) {
+    final plakaReg = RegExp(
+      r'\b(0[1-9]|[1-7][0-9]|8[01])\s*[A-ZŞĞÇİÖÜ]{1,3}\s*\d{2,4}\b',
+    );
+    for (final r in rows) {
+      if (plakaReg.hasMatch(r.upper)) {
+        return 'Yakıt';
+      }
+    }
+
+    final oU = odemeYontemi.toUpperCase();
+    if (oU.contains('YEMEK') ||
+        oU.contains('MULTINET') ||
+        oU.contains('SODEXO') ||
+        oU.contains('PLUXEE') ||
+        oU.contains('TICKET') ||
+        oU.contains('SETCARD') ||
+        oU.contains('METROPOL') ||
+        oU.contains('PAYE')) {
+      return 'Yeme-İçme';
+    }
+
+    for (final r in rows) {
+      if (r.upper.contains('E-REÇETE') ||
+          r.upper.contains('İLAÇ') ||
+          r.upper.contains('SGK')) {
+        return 'Sağlık';
+      }
+    }
+
     final u = firmaAdi.toUpperCase();
     for (final entry in _kategoriMap.entries) {
       if (u.contains(entry.key)) return entry.value;
     }
+
     return 'Diğer';
   }
 
@@ -1096,24 +1084,39 @@ class ReceiptParser {
 
   // ═══════════════════════════════════════════════════════════════════
   // YARDIMCI: Fiyat normalize
-  // Asterisk kaldır, virgülü noktaya çevir
   // ═══════════════════════════════════════════════════════════════════
   static String _normPrice(String raw) {
     return raw
-        .replaceAll('*', '') // asterisk kaldır
+        .replaceAll('*', '')
         .replaceAll(RegExp(r'[^0-9.,]'), '')
         .replaceAll(',', '.');
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  // YARDIMCI: Ödeme Normalize
+  // ═══════════════════════════════════════════════════════════════════
   static String _normOdeme(String kw) {
     final u = kw.toUpperCase();
     if (u.contains('NAKIT') || u.contains('NAKİT')) return 'Nakit';
     if (u.contains('KREDİ') || u.contains('KREDI')) return 'Kredi Kartı';
     if (u.contains('BANKA')) return 'Banka Kartı';
     if (u.contains('TEMASSIZ')) return 'Temassız';
+    if (u.contains('SODEXO') || u.contains('PLUXEE')) return 'Sodexo / Pluxee';
+    if (u.contains('MULTINET') || u.contains('MULTİNET')) return 'Multinet';
+    if (u.contains('TICKET') || u.contains('TİCKET') || u.contains('EDENRED'))
+      return 'Ticket Restaurant';
+    if (u.contains('SETCARD')) return 'Setcard';
+    if (u.contains('METROPOL')) return 'Metropol Kart';
+    if (u.contains('PAYE')) return 'Paye Kart';
+    if (u.contains('TOKENFLEX')) return 'TokenFlex';
+    if (u.contains('YEMEK KARTI') ||
+        u.contains('YEMEK CEKI') ||
+        u.contains('YEMEK ÇEKİ'))
+      return 'Yemek Kartı';
     if (u.contains('KART')) return 'Kart';
     if (u.contains('HEDİYE') || u.contains('HEDIYE')) return 'Hediye Çeki';
-    if (u.contains('EFT') || u.contains('HAVALE')) return 'EFT/Havale';
+    if (u.contains('EFT') || u.contains('HAVALE') || u.contains('FAST'))
+      return 'EFT/Havale';
     return kw;
   }
 
