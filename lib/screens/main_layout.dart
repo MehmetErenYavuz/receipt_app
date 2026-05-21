@@ -7,6 +7,7 @@ import '../services/image_processor.dart';
 import '../services/ocr_service.dart';
 import '../utils/receipt_parser.dart';
 import '../models/receipt_data.dart';
+import '../widgets/result_sheet.dart'; // Fiş detay analizi için eklendi
 import '../main.dart'; // AppColors için
 
 class MainLayout extends StatefulWidget {
@@ -126,7 +127,7 @@ class _MainLayoutState extends State<MainLayout> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// SEKME 1: GEÇMİŞ — Premium Liste Tasarımı
+// SEKME 1: GEÇMİŞ — Premium Liste Tasarımı (Onay Sekmeleri Entegre Edildi)
 // ═══════════════════════════════════════════════════════════════════════
 class _HistoryTab extends StatefulWidget {
   final DatabaseHelper db;
@@ -136,8 +137,210 @@ class _HistoryTab extends StatefulWidget {
   State<_HistoryTab> createState() => _HistoryTabState();
 }
 
-class _HistoryTabState extends State<_HistoryTab> {
+class _HistoryTabState extends State<_HistoryTab>
+    with SingleTickerProviderStateMixin {
   String _filter = 'Tümü';
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // ── Fiş doğrulama ve detay ekranını açan fonksiyon ──
+  // isDetailMode: true ise (onaylananlardan tıklanmışsa), detay/düzenleme modu açılır
+  // isDetailMode: false ise (onay bekleyenlerden tıklanmışsa), onaylama akışı çalışır
+  void _openReceiptDetail(ReceiptData receipt, {required bool isDetailMode}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.92,
+        minChildSize: 0.5,
+        maxChildSize: 0.97,
+        builder: (_, ctrl) => ResultSheet(
+          data: receipt,
+          isDetailMode: isDetailMode,
+          onSave: () async {
+            // Onay bekleyenden geliyorsa onayla
+            if (!isDetailMode) {
+              try {
+                receipt.isApproved = true;
+              } catch (_) {}
+            }
+
+            // Yerel veritabanına güncel halini kaydet
+            await widget.db.insertReceipt(receipt);
+
+            if (mounted) {
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.success,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        isDetailMode
+                            ? 'Değişiklikler kaydedildi'
+                            : 'Fiş onaylandı ve kaydedildi',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.divider),
+                  ),
+                ),
+              );
+            }
+          },
+          onEdit: () {},
+          // ── YENİ: Detay modunda silme callback'i ──
+          onDelete: () async {
+            if (receipt.id != null) {
+              await widget.db.deleteReceipt(receipt.id!);
+              if (mounted) {
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.danger,
+                          size: 18,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Fiş silindi',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.white,
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: const BorderSide(color: AppColors.divider),
+                    ),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  // ── Kaydırarak silme onay dialog'u ──
+  Future<bool> _confirmSwipeDelete(BuildContext context, ReceiptData r) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppColors.danger,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Fişi sil?',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '"${r.firmaAdi.isEmpty ? 'Bilinmeyen Firma' : r.firmaAdi}" silinecek. Geri alınamaz.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: const BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text(
+                        'Vazgeç',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.danger,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text(
+                        'Sil',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return result ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +373,40 @@ class _HistoryTabState extends State<_HistoryTab> {
               ),
             ),
 
+            // ── Onay Durumu TabBar Seçici ──
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary,
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(text: 'Onay Bekleyenler'),
+                  Tab(text: 'Onaylananlar'),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
             // ── Kategori Filtre Pills ──
             SizedBox(
               height: 38,
@@ -190,7 +427,7 @@ class _HistoryTabState extends State<_HistoryTab> {
 
             const SizedBox(height: 8),
 
-            // ── Liste ──
+            // ── Liste Bölümü (TabBarView Entegrasyonu) ──
             Expanded(
               child: FutureBuilder<List<ReceiptData>>(
                 future: widget.db.getAllReceipts(),
@@ -208,23 +445,45 @@ class _HistoryTabState extends State<_HistoryTab> {
                   }
 
                   var receipts = snapshot.data!;
+
+                  // Kategori Filtreleme Uygulaması
                   if (_filter != 'Tümü') {
                     receipts = receipts
                         .where((r) => r.kategori == _filter)
                         .toList();
                   }
 
-                  if (receipts.isEmpty) {
-                    return _emptyState(
-                      message: '$_filter kategorisinde fiş yok',
-                    );
-                  }
+                  // Fişleri onay durumuna göre ayırma
+                  var pendingReceipts = receipts.where((r) {
+                    try {
+                      return !r.isApproved;
+                    } catch (_) {
+                      return true; // Varsayılan durum: Onay bekliyor
+                    }
+                  }).toList();
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    itemCount: receipts.length,
-                    itemBuilder: (context, index) =>
-                        _ReceiptCard(receipt: receipts[index]),
+                  var approvedReceipts = receipts.where((r) {
+                    try {
+                      return r.isApproved;
+                    } catch (_) {
+                      return false;
+                    }
+                  }).toList();
+
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildTabList(
+                        pendingReceipts,
+                        'Onay bekleyen fiş bulunamadı.',
+                        isPendingTab: true,
+                      ),
+                      _buildTabList(
+                        approvedReceipts,
+                        'Onaylanmış harcama bulunamadı.',
+                        isPendingTab: false,
+                      ),
+                    ],
                   );
                 },
               ),
@@ -232,6 +491,38 @@ class _HistoryTabState extends State<_HistoryTab> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTabList(
+    List<ReceiptData> list,
+    String emptyMessage, {
+    required bool isPendingTab,
+  }) {
+    if (list.isEmpty) {
+      return _emptyState(message: emptyMessage);
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final receipt = list[index];
+        return _ReceiptCard(
+          receipt: receipt,
+          // YENİ: Hem onay bekleyen hem onaylanan TIKLANABİLİR
+          // Onay bekleyen → onaylama modu
+          // Onaylanan → detay/düzenleme modu (isDetailMode: true)
+          onTap: () => _openReceiptDetail(receipt, isDetailMode: !isPendingTab),
+          // YENİ: Kaydırma ile silme her iki sekmede de aktif
+          onConfirmDelete: () => _confirmSwipeDelete(context, receipt),
+          onDeleted: () async {
+            if (receipt.id != null) {
+              await widget.db.deleteReceipt(receipt.id!);
+              if (mounted) setState(() {});
+            }
+          },
+        );
+      },
     );
   }
 
@@ -305,10 +596,20 @@ class _HistoryTabState extends State<_HistoryTab> {
 
 // ═══════════════════════════════════════════════════════════════════════
 // FİŞ KARTI — Premium Tasarım
+// YENİ: Tıklanabilir + Kaydırarak silme + Mini doğruluk badge
 // ═══════════════════════════════════════════════════════════════════════
 class _ReceiptCard extends StatelessWidget {
   final ReceiptData receipt;
-  const _ReceiptCard({required this.receipt});
+  final VoidCallback? onTap; // Kart tıklama eventi
+  final Future<bool> Function()? onConfirmDelete; // Silme onayı dialog'u
+  final VoidCallback? onDeleted; // Silme gerçekleşince callback
+
+  const _ReceiptCard({
+    required this.receipt,
+    this.onTap,
+    this.onConfirmDelete,
+    this.onDeleted,
+  });
 
   Color get _kategoriRengi =>
       AppColors.kategoriRenkler[receipt.kategori] ?? AppColors.textTertiary;
@@ -336,9 +637,26 @@ class _ReceiptCard extends StatelessWidget {
     }
   }
 
+  // YENİ: Doğruluk oranı rengi
+  Color get _confColor {
+    final c = receipt.averageConfidence;
+    if (c >= 0.80) return AppColors.success;
+    if (c >= 0.55) return AppColors.warning;
+    return AppColors.danger;
+  }
+
+  IconData get _confIcon {
+    final c = receipt.averageConfidence;
+    if (c >= 0.80) return Icons.verified_rounded;
+    if (c >= 0.55) return Icons.info_rounded;
+    return Icons.warning_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final conf = receipt.averageConfidence;
+
+    final cardBody = Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -349,9 +667,7 @@ class _ReceiptCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // İleride detay sayfası eklenebilir
-          },
+          onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -384,22 +700,57 @@ class _ReceiptCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Firma + Tarih
+                // Firma + Tarih + Kategori
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        receipt.firmaAdi.isEmpty
-                            ? 'Bilinmeyen Firma'
-                            : receipt.firmaAdi,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              receipt.firmaAdi.isEmpty
+                                  ? 'Bilinmeyen Firma'
+                                  : receipt.firmaAdi,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // YENİ: Mini doğruluk badge
+                          if (conf > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _confColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(_confIcon, size: 10, color: _confColor),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '%${(conf * 100).round()}',
+                                    style: TextStyle(
+                                      color: _confColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -441,7 +792,9 @@ class _ReceiptCard extends StatelessWidget {
                   ),
                 ),
 
-                // Tutar
+                const SizedBox(width: 8),
+
+                // Tutar + Chevron
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -456,14 +809,25 @@ class _ReceiptCard extends StatelessWidget {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    if (receipt.uyari != null && receipt.uyari!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        size: 14,
-                        color: AppColors.warning,
-                      ),
-                    ],
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (receipt.uyari != null &&
+                            receipt.uyari!.isNotEmpty) ...[
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            size: 14,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: AppColors.textTertiary,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],
@@ -471,6 +835,44 @@ class _ReceiptCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    // Eğer silme fonksiyonları sağlanmadıysa düz kart döner
+    if (onConfirmDelete == null || onDeleted == null) {
+      return cardBody;
+    }
+
+    // Kaydırarak silme
+    return Dismissible(
+      key: ValueKey('receipt_${receipt.id ?? receipt.hashCode}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: AppColors.danger,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete_outline_rounded, color: Colors.white, size: 26),
+            SizedBox(height: 2),
+            Text(
+              'Sil',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+      confirmDismiss: (_) => onConfirmDelete!(),
+      onDismissed: (_) => onDeleted!(),
+      child: cardBody,
     );
   }
 }

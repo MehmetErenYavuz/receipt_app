@@ -85,50 +85,39 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  void _showResult(RecognizedText ocr, String imagePath) {
+  void _showResult(RecognizedText ocr, String imagePath) async {
     final data = ReceiptParser.parse(ocr);
     data.imagePath = imagePath;
+    data.isApproved = false; // Onay bekleyenlere düşsün
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.92,
-        minChildSize: 0.5,
-        maxChildSize: 0.97,
-        builder: (_, ctrl) => ResultSheet(
-          data: data,
-          onSave: () async {
-            await DatabaseHelper().insertReceipt(data);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.check_circle_rounded, color: Colors.amber),
-                      SizedBox(width: 10),
-                      Text(
-                        'Fiş başarıyla kaydedildi',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.white,
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: const BorderSide(color: Colors.lightBlue),
-                  ),
+    // Tamamen lokal cihazda SQLite'a kayıt yapılıyor
+    await DatabaseHelper().insertReceipt(data);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.access_time_rounded, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Fiş okundu. Geçmiş sekmesinden onaylayın.',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              );
-              Navigator.pop(context);
-            }
-          },
-          onEdit: () {},
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.primary,
+          elevation: 8,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-      ),
-    );
+      );
+      Navigator.pop(context); // Kamerayı kapatıp ana ekrana dön
+    }
   }
 
   @override

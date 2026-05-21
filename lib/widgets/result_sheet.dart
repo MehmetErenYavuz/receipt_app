@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/receipt_data.dart';
@@ -8,11 +9,21 @@ class ResultSheet extends StatefulWidget {
   final VoidCallback onSave;
   final VoidCallback onEdit;
 
+  /// YENİ: Detay modu - kayıtlı bir fişi görüntülemek/düzenlemek için kullanılır.
+  /// true ise: Silme butonu görünür, "Değişiklikleri Kaydet" yazar.
+  /// false ise: Yeni fiş analizi modu (varsayılan davranış).
+  final bool isDetailMode;
+
+  /// YENİ: Detay modunda silme butonuna basıldığında çağrılır.
+  final VoidCallback? onDelete;
+
   const ResultSheet({
     super.key,
     required this.data,
     required this.onSave,
     required this.onEdit,
+    this.isDetailMode = false, // Geriye dönük uyumluluk için varsayılan false
+    this.onDelete,
   });
 
   @override
@@ -48,6 +59,184 @@ class _ResultSheetState extends State<ResultSheet> {
     super.dispose();
   }
 
+  // ── TAM EKRAN GÖRSEL İNCELEYİCİ ──
+  void _showZoomedImage(BuildContext context, String path) {
+    showDialog(
+      context: context,
+      useSafeArea: false,
+      barrierColor: Colors.black.withOpacity(0.95),
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            // Resim (Zoom edilebilir)
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 5.0,
+                panEnabled: true,
+                child: Image.file(File(path), fit: BoxFit.contain),
+              ),
+            ),
+            // Kapat Butonu
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Doğruluk Oranı Yardımcıları ──────────────────────────────────
+  Color _confMainColor(double conf) {
+    if (conf >= 0.80) return AppColors.success;
+    if (conf >= 0.55) return AppColors.warning;
+    return AppColors.danger;
+  }
+
+  Color _confBgColor(double conf) {
+    if (conf >= 0.80) return AppColors.success.withOpacity(0.08);
+    if (conf >= 0.55) return AppColors.warning.withOpacity(0.08);
+    return AppColors.danger.withOpacity(0.08);
+  }
+
+  Color _confBorderColor(double conf) {
+    if (conf >= 0.80) return AppColors.success.withOpacity(0.25);
+    if (conf >= 0.55) return AppColors.warning.withOpacity(0.25);
+    return AppColors.danger.withOpacity(0.25);
+  }
+
+  IconData _confIcon(double conf) {
+    if (conf >= 0.80) return Icons.verified_rounded;
+    if (conf >= 0.55) return Icons.info_rounded;
+    return Icons.warning_rounded;
+  }
+
+  String _confLabel(double conf) {
+    if (conf >= 0.80) return 'Yüksek';
+    if (conf >= 0.55) return 'Orta';
+    return 'Düşük';
+  }
+
+  String _confSubtitle(double conf) {
+    if (conf >= 0.80) return 'Güvenli kayıt';
+    if (conf >= 0.55) return 'Kontrol önerilir';
+    return 'Manuel kontrol şart';
+  }
+
+  // ─── Silme Onay Dialog'u ──────────────────────────────────────────
+  Future<void> _handleDelete(BuildContext context) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppColors.danger,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Fişi sil?',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Bu işlem geri alınamaz. Fiş ve varsa fotoğrafı kalıcı olarak silinecek.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: const BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text(
+                        'Vazgeç',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.danger,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text(
+                        'Sil',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.pop(context); // Önce bottom sheet'i kapat
+      widget.onDelete?.call(); // Sonra silme callback'ini çağır
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = widget.data;
@@ -55,7 +244,7 @@ class _ResultSheetState extends State<ResultSheet> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.amber,
+        color: AppColors.background, // Premium sade arkaplan
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -63,106 +252,322 @@ class _ResultSheetState extends State<ResultSheet> {
         children: [
           // ── Tutamaç ──
           Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 44,
+            height: 5,
+            margin: const EdgeInsets.only(top: 12, bottom: 12),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(2),
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
 
           // ── Başlık ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.receipt_long_rounded,
-                    color: Colors.deepOrange,
-                    size: 22,
+                    color: AppColors.primary,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
+                const SizedBox(width: 14),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Fiş Analizi',
-                        style: TextStyle(
-                          color: Colors.blueAccent,
+                        widget.isDetailMode ? 'Fiş Detayı' : 'Fiş Analizi',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 19,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.4,
                         ),
                       ),
                       Text(
-                        'Verileri kontrol edip kaydedin',
-                        style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        widget.isDetailMode
+                            ? (_editMode
+                                  ? 'Bilgileri düzenleyin'
+                                  : 'Bilgileri görüntülüyorsunuz')
+                            : 'Verileri kontrol edip kaydedin',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                _ConfidenceBadge(confidence: conf),
-                const SizedBox(width: 8),
-                // Düzenle toggle
+
+                // Düzenle toggle (Premium tarz)
                 Material(
                   color: _editMode
                       ? AppColors.success.withOpacity(0.12)
                       : AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     onTap: () => setState(() => _editMode = !_editMode),
                     child: Padding(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       child: Icon(
                         _editMode ? Icons.check_rounded : Icons.edit_outlined,
                         color: _editMode
                             ? AppColors.success
-                            : AppColors.textSecondary,
-                        size: 20,
+                            : AppColors.textPrimary,
+                        size: 22,
                       ),
                     ),
+                  ),
+                ),
+
+                // Detay modunda silme butonu
+                if (widget.isDetailMode) ...[
+                  const SizedBox(width: 8),
+                  Material(
+                    color: AppColors.danger.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => _handleDelete(context),
+                      child: const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.danger,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ── DOĞRULUK ORANI BÜYÜK KARTI ──
+          Container(
+            margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _confBgColor(conf),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _confBorderColor(conf), width: 1),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: _confMainColor(conf).withOpacity(0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _confIcon(conf),
+                    color: _confMainColor(conf),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Doğruluk Oranı',
+                            style: TextStyle(
+                              color: _confMainColor(conf),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _confMainColor(conf).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _confLabel(conf),
+                              style: TextStyle(
+                                color: _confMainColor(conf),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '%${(conf * 100).round()}',
+                            style: TextStyle(
+                              color: _confMainColor(conf),
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.8,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              _confSubtitle(conf),
+                              style: TextStyle(
+                                color: _confMainColor(conf).withOpacity(0.75),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
+          // ── Fiş Görseli Önizleme (Tıklanabilir Premium Tasarım) ──
+          if (d.imagePath != null && File(d.imagePath!).existsSync())
+            GestureDetector(
+              onTap: () => _showZoomedImage(context, d.imagePath!),
+              child: Container(
+                height: 130,
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.divider),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  image: DecorationImage(
+                    image: FileImage(File(d.imagePath!)),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Alt kısımdaki karartma efekti (yazı okunsun diye)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(16),
+                          ),
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.6),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Büyüteç ikonu ve yazısı
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.zoom_in_rounded,
+                              size: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Fotoğrafı Büyüt',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // ── Uyarı ──
           if (d.uyari != null)
             Container(
-              margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.warning.withOpacity(0.25)),
+                color: AppColors.danger.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.danger.withOpacity(0.2)),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: AppColors.warning,
-                    size: 20,
+                    color: AppColors.danger,
+                    size: 22,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       d.uyari!,
-                      style: TextStyle(
-                        color: AppColors.warning.withRed(180),
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
+                      style: const TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         height: 1.4,
                       ),
                     ),
@@ -171,10 +576,10 @@ class _ResultSheetState extends State<ResultSheet> {
               ),
             ),
 
-          // ── İçerik ──
+          // ── İçerik (Scroll edilebilir alan) ──
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -224,7 +629,7 @@ class _ResultSheetState extends State<ResultSheet> {
                       value: d.mersisNo,
                     ),
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
                   // ── Belge Bilgileri ──
                   const _SectionHeader(
@@ -275,7 +680,7 @@ class _ResultSheetState extends State<ResultSheet> {
                       value: d.iban,
                     ),
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
                   // ── Zaman ──
                   const _SectionHeader(
@@ -308,7 +713,7 @@ class _ResultSheetState extends State<ResultSheet> {
 
                   // ── Yakıt Detayları (varsa) ──
                   if (d.isYakitFisi) ...[
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 24),
                     const _SectionHeader(
                       title: 'Yakıt Detayları',
                       icon: Icons.local_gas_station_rounded,
@@ -339,7 +744,7 @@ class _ResultSheetState extends State<ResultSheet> {
                       ),
                   ],
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
                   // ── KDV Detayları ──
                   const _SectionHeader(
@@ -369,48 +774,55 @@ class _ResultSheetState extends State<ResultSheet> {
                       value: '${d.araToplam} ₺',
                     ),
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
                   // ── Ödeme ──
                   const _SectionHeader(
-                    title: 'Ödeme',
+                    title: 'Ödeme Bilgileri',
                     icon: Icons.payments_rounded,
                   ),
 
-                  // GENEL TOPLAM — vurgulu kart
+                  // GENEL TOPLAM — Vurgulu Premium Kart
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 14,
+                      vertical: 16,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.payments_rounded,
                             color: Colors.white,
-                            size: 18,
+                            size: 20,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         const Expanded(
                           child: Text(
                             'GENEL TOPLAM',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ),
@@ -423,17 +835,20 @@ class _ResultSheetState extends State<ResultSheet> {
                               keyboardType: TextInputType.text,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.5,
                               ),
                               decoration: InputDecoration(
                                 isDense: true,
-                                contentPadding: EdgeInsets.zero,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.12),
+                                fillColor: Colors.white.withOpacity(0.15),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide.none,
                                 ),
                                 suffixText: '₺',
@@ -449,7 +864,7 @@ class _ResultSheetState extends State<ResultSheet> {
                             '${_controllers['toplam']!.text.isEmpty ? '—' : _controllers['toplam']!.text} ₺',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 24,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.5,
                             ),
@@ -471,7 +886,7 @@ class _ResultSheetState extends State<ResultSheet> {
                       value: '${d.paraUstu} ₺',
                     ),
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
                   // ── Kategori ──
                   const _SectionHeader(
@@ -484,7 +899,7 @@ class _ResultSheetState extends State<ResultSheet> {
                         setState(() => _controllers['kategori']!.text = v),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -494,7 +909,7 @@ class _ResultSheetState extends State<ResultSheet> {
           Container(
             padding: EdgeInsets.fromLTRB(
               20,
-              12,
+              16,
               20,
               MediaQuery.of(context).viewPadding.bottom + 16,
             ),
@@ -508,17 +923,20 @@ class _ResultSheetState extends State<ResultSheet> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.divider),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(
+                        color: AppColors.divider,
+                        width: 1.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'İptal',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
+                    child: Text(
+                      widget.isDetailMode ? 'Kapat' : 'İptal',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
                     ),
@@ -531,16 +949,23 @@ class _ResultSheetState extends State<ResultSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
-                    icon: const Icon(Icons.check_rounded, size: 20),
-                    label: const Text(
-                      'Onayla ve Kaydet',
-                      style: TextStyle(
+                    icon: Icon(
+                      widget.isDetailMode
+                          ? Icons.save_rounded
+                          : Icons.check_circle_outline_rounded,
+                      size: 22,
+                    ),
+                    label: Text(
+                      widget.isDetailMode
+                          ? 'Değişiklikleri Kaydet'
+                          : 'Onayla ve Kaydet',
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
@@ -569,7 +994,7 @@ class _ResultSheetState extends State<ResultSheet> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// SECTION HEADER
+// SECTION HEADER (Sadeleştirildi)
 // ═══════════════════════════════════════════════════════════════════════
 class _SectionHeader extends StatelessWidget {
   final String title;
@@ -578,18 +1003,18 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8, top: 2),
+    padding: const EdgeInsets.only(bottom: 12, top: 4),
     child: Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
+        Icon(icon, size: 18, color: AppColors.primary),
         const SizedBox(width: 8),
         Text(
-          title.toUpperCase(),
+          title,
           style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 11,
+            color: AppColors.primary,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
+            letterSpacing: 0.5,
           ),
         ),
       ],
@@ -612,7 +1037,7 @@ class _StaticRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 7),
+    padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(
       children: [
         Icon(icon, color: AppColors.textTertiary, size: 18),
@@ -623,7 +1048,7 @@ class _StaticRow extends StatelessWidget {
             label,
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 13.5,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -635,7 +1060,7 @@ class _StaticRow extends StatelessWidget {
             textAlign: TextAlign.right,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 13.5,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
             overflow: TextOverflow.ellipsis,
@@ -647,7 +1072,7 @@ class _StaticRow extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// EDITABLE ROW
+// EDITABLE ROW (Doğruluk Oranı Noktası İle)
 // ═══════════════════════════════════════════════════════════════════════
 class _EditableRow extends StatelessWidget {
   final IconData icon;
@@ -655,7 +1080,6 @@ class _EditableRow extends StatelessWidget {
   final TextEditingController controller;
   final bool editMode;
   final String? suffix;
-  final bool isHighlight;
   final double? confidence;
 
   const _EditableRow({
@@ -664,7 +1088,6 @@ class _EditableRow extends StatelessWidget {
     required this.controller,
     required this.editMode,
     this.suffix,
-    this.isHighlight = false,
     this.confidence,
   });
 
@@ -677,7 +1100,7 @@ class _EditableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 7),
+    padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(
       children: [
         Icon(icon, color: AppColors.textTertiary, size: 18),
@@ -688,17 +1111,17 @@ class _EditableRow extends StatelessWidget {
             label,
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 13.5,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
-        // Güven noktası
+        // Güven noktası (Tasarım aynı korundu)
         if (confidence != null)
           Container(
             width: 8,
             height: 8,
-            margin: const EdgeInsets.only(right: 6),
+            margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _confColor(),
@@ -717,19 +1140,19 @@ class _EditableRow extends StatelessWidget {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 10,
                     ),
                     filled: true,
                     fillColor: AppColors.surfaceAlt,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
                     suffixText: suffix,
                     suffixStyle: const TextStyle(
                       color: AppColors.textTertiary,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
                   textAlign: TextAlign.right,
@@ -773,100 +1196,48 @@ class _KdvDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
+    padding: const EdgeInsets.symmetric(vertical: 6),
     child: Row(
       children: [
         const Icon(
           Icons.subdirectory_arrow_right_rounded,
           color: AppColors.textTertiary,
-          size: 16,
+          size: 18,
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.accent.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             item.oran,
             style: const TextStyle(
               color: AppColors.accent,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         if (item.matrah != null && item.matrah.toString().isNotEmpty)
           Text(
             'Matrah: ${item.matrah} ₺',
-            style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+            style: const TextStyle(color: AppColors.textTertiary, fontSize: 13),
           ),
         const Spacer(),
         Text(
           'KDV: ${item.tutar} ₺',
           style: const TextStyle(
             color: AppColors.textPrimary,
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
       ],
     ),
   );
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// CONFIDENCE BADGE
-// ═══════════════════════════════════════════════════════════════════════
-class _ConfidenceBadge extends StatelessWidget {
-  final double confidence;
-  const _ConfidenceBadge({required this.confidence});
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = (confidence * 100).round();
-    Color color;
-    String label;
-    IconData icon;
-    if (pct >= 80) {
-      color = AppColors.success;
-      label = '$pct%';
-      icon = Icons.check_circle_rounded;
-    } else if (pct >= 55) {
-      color = AppColors.warning;
-      label = '$pct%';
-      icon = Icons.info_rounded;
-    } else {
-      color = AppColors.danger;
-      label = '$pct%';
-      icon = Icons.error_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 12),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -892,19 +1263,20 @@ class _CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
+    spacing: 10,
+    runSpacing: 10,
     children: _categories.map((cat) {
       final isSelected = selected == cat.$1;
       final renk = AppColors.kategoriRenkler[cat.$1] ?? AppColors.primary;
+
       return GestureDetector(
         onTap: () => onChanged(cat.$1),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? renk : AppColors.surfaceAlt,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected ? renk : AppColors.divider,
               width: 1,
@@ -915,15 +1287,15 @@ class _CategorySelector extends StatelessWidget {
             children: [
               Icon(
                 cat.$2,
-                size: 14,
+                size: 16,
                 color: isSelected ? Colors.white : AppColors.textSecondary,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
                 cat.$1,
                 style: TextStyle(
                   color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),

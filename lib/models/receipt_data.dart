@@ -1,54 +1,59 @@
 import 'kdv_item.dart';
 
 class ReceiptData {
-  // ── Firma Bilgileri ─────────────────────────────────────────────
+  int? id; // Güncelleme işlemleri için ID (Lokal DB)
+  bool isApproved; // Onay durumu (Lokal DB'de tutulacak)
+
+  // ── Firma Bilgileri ──
   String firmaAdi;
   String firmaAdresi;
   String vergiDairesi;
-  String vergiTcNo; // 10 hane = VKN, 11 hane = TC
+  String vergiTcNo;
 
-  // ── Belge Bilgileri ─────────────────────────────────────────────
-  String belgeTuru; // "ÖKC Fişi" / "e-Arşiv Fatura" / "Banka Pos Dekontu" vs.
+  // ── Belge Bilgileri ──
+  String belgeTuru;
   String fisNo;
   String seriNo;
   String zNo;
-  String ekuNo; // YENİ: EKÜ No (Elektronik Kayıt Ünitesi)
-  String ettn; // YENİ: e-Arşiv UUID
-  String mersisNo; // YENİ: 16 haneli Mersis No
-  String iban; // YENİ: IBAN (TR ile başlayan)
+  String ekuNo;
+  String ettn;
+  String mersisNo;
+  String iban;
 
-  // ── Zaman ───────────────────────────────────────────────────────
+  // ── Zaman ──
   String tarih;
   String saat;
 
-  // ── Tutar Bilgileri ─────────────────────────────────────────────
+  // ── Tutar Bilgileri ──
   List<KdvItem> kdvDetay;
   String toplamKdv;
-  String kdvHaricToplam; // Matrah
-  String araToplam; // YENİ: İndirimden önceki ara toplam
+  String kdvHaricToplam;
+  String araToplam;
   String toplamTutar;
   String odemeYontemi;
   String paraUstu;
-  String paraBirimi; // YENİ: TL, USD, EUR
+  String paraBirimi;
 
-  // ── Yakıt Fişi Özel Alanları (varsa) ────────────────────────────
-  String? yakitTuru; // Motorin, Benzin, LPG vb.
-  String? yakitLitre; // 32.50 LT
-  String? pompaNo; // Pompa numarası
-  String? aracPlakasi; // 38 ABC 1234
+  // ── Yakıt Fişi Özel Alanları ──
+  String? yakitTuru;
+  String? yakitLitre;
+  String? pompaNo;
+  String? aracPlakasi;
 
-  // ── İletişim ────────────────────────────────────────────────────
+  // ── İletişim ──
   String? telefon;
 
-  // ── Sınıflandırma ve Medya ──────────────────────────────────────
+  // ── Sınıflandırma ve Medya ──
   String kategori;
-  String? imagePath; // Fotoğrafın telefondaki konumu
+  String? imagePath;
 
-  // ── Kalite ──────────────────────────────────────────────────────
+  // ── Kalite ──
   Map<String, double> confidenceScores;
   String? uyari;
 
   ReceiptData({
+    this.id,
+    this.isApproved = false, // Varsayılan olarak onay bekliyor
     this.firmaAdi = '',
     this.firmaAdresi = '',
     this.vergiDairesi = '',
@@ -82,6 +87,81 @@ class ReceiptData {
     this.uyari,
   }) : kdvDetay = kdvDetay ?? [],
        confidenceScores = confidenceScores ?? {};
+
+  // ── Clean Code Standardı: CopyWith Metodu ────────────────────────
+  // UI güncellemelerinde objenin referansını değiştirmeden sadece
+  // istediğimiz alanları güncellememizi sağlar.
+  ReceiptData copyWith({
+    int? id,
+    bool? isApproved,
+    String? firmaAdi,
+    String? firmaAdresi,
+    String? vergiDairesi,
+    String? vergiTcNo,
+    String? belgeTuru,
+    String? fisNo,
+    String? seriNo,
+    String? zNo,
+    String? ekuNo,
+    String? ettn,
+    String? mersisNo,
+    String? iban,
+    String? tarih,
+    String? saat,
+    List<KdvItem>? kdvDetay,
+    String? toplamKdv,
+    String? kdvHaricToplam,
+    String? araToplam,
+    String? toplamTutar,
+    String? odemeYontemi,
+    String? paraUstu,
+    String? paraBirimi,
+    String? yakitTuru,
+    String? yakitLitre,
+    String? pompaNo,
+    String? aracPlakasi,
+    String? telefon,
+    String? kategori,
+    String? imagePath,
+    Map<String, double>? confidenceScores,
+    String? uyari,
+  }) {
+    return ReceiptData(
+      id: id ?? this.id,
+      isApproved: isApproved ?? this.isApproved,
+      firmaAdi: firmaAdi ?? this.firmaAdi,
+      firmaAdresi: firmaAdresi ?? this.firmaAdresi,
+      vergiDairesi: vergiDairesi ?? this.vergiDairesi,
+      vergiTcNo: vergiTcNo ?? this.vergiTcNo,
+      belgeTuru: belgeTuru ?? this.belgeTuru,
+      fisNo: fisNo ?? this.fisNo,
+      seriNo: seriNo ?? this.seriNo,
+      zNo: zNo ?? this.zNo,
+      ekuNo: ekuNo ?? this.ekuNo,
+      ettn: ettn ?? this.ettn,
+      mersisNo: mersisNo ?? this.mersisNo,
+      iban: iban ?? this.iban,
+      tarih: tarih ?? this.tarih,
+      saat: saat ?? this.saat,
+      kdvDetay: kdvDetay ?? this.kdvDetay,
+      toplamKdv: toplamKdv ?? this.toplamKdv,
+      kdvHaricToplam: kdvHaricToplam ?? this.kdvHaricToplam,
+      araToplam: araToplam ?? this.araToplam,
+      toplamTutar: toplamTutar ?? this.toplamTutar,
+      odemeYontemi: odemeYontemi ?? this.odemeYontemi,
+      paraUstu: paraUstu ?? this.paraUstu,
+      paraBirimi: paraBirimi ?? this.paraBirimi,
+      yakitTuru: yakitTuru ?? this.yakitTuru,
+      yakitLitre: yakitLitre ?? this.yakitLitre,
+      pompaNo: pompaNo ?? this.pompaNo,
+      aracPlakasi: aracPlakasi ?? this.aracPlakasi,
+      telefon: telefon ?? this.telefon,
+      kategori: kategori ?? this.kategori,
+      imagePath: imagePath ?? this.imagePath,
+      confidenceScores: confidenceScores ?? this.confidenceScores,
+      uyari: uyari ?? this.uyari,
+    );
+  }
 
   // ── Hesaplanan Özellikler ────────────────────────────────────────
 
