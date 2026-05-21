@@ -9,6 +9,7 @@ import '../utils/receipt_parser.dart';
 import '../models/receipt_data.dart';
 import '../widgets/result_sheet.dart'; // Fiş detay analizi için eklendi
 import '../main.dart'; // AppColors için
+import '../services/excel_export_service.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -448,9 +449,8 @@ class _HistoryTabState extends State<_HistoryTab>
 
                   // Kategori Filtreleme Uygulaması
                   if (_filter != 'Tümü') {
-                    receipts = receipts
-                        .where((r) => r.kategori == _filter)
-                        .toList();
+                    receipts =
+                        receipts.where((r) => r.kategori == _filter).toList();
                   }
 
                   // Fişleri onay durumuna göre ayırma
@@ -675,8 +675,7 @@ class _ReceiptCard extends StatelessWidget {
                 // Görsel veya kategori ikonu
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child:
-                      receipt.imagePath != null &&
+                  child: receipt.imagePath != null &&
                           File(receipt.imagePath!).existsSync()
                       ? Image.file(
                           File(receipt.imagePath!),
@@ -1192,9 +1191,29 @@ class _PrimaryActionCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════
 // SEKME 3: ÖZET (Eski Excel)
 // ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// SEKME 3: ÖZET VE EXCEL DIŞA AKTARIM
+// ═══════════════════════════════════════════════════════════════════════
 class _ExportTab extends StatelessWidget {
   final DatabaseHelper db;
   const _ExportTab({required this.db});
+
+  void _showExportSelectionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) => _ExportSelectionSheet(
+          db: db,
+          scrollController: scrollController,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1207,27 +1226,52 @@ class _ExportTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-              const Text(
-                'Özet',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.8,
-                ),
+              // ── BAŞLIK VE EXCEL BUTONU ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Özet',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.8,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color(0xFF107C41), // Premium Excel Yeşili
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.explicit_rounded, size: 18),
+                    label: const Text(
+                      'Excel\'e Aktar',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    ),
+                    onPressed: () => _showExportSelectionSheet(context),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
 
-              // Kategori bazlı toplamlar
+              // Kategori bazlı toplamlar (Mevcut yapı bozulmadan korundu)
               Expanded(
                 child: FutureBuilder<Map<String, double>>(
                   future: db.getKategoriToplamlari(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       );
                     }
                     final toplamlar = snapshot.data!;
@@ -1239,10 +1283,8 @@ class _ExportTab extends StatelessWidget {
                         ),
                       );
                     }
-                    final genelToplam = toplamlar.values.fold(
-                      0.0,
-                      (a, b) => a + b,
-                    );
+                    final genelToplam =
+                        toplamlar.values.fold(0.0, (a, b) => a + b);
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1290,8 +1332,7 @@ class _ExportTab extends StatelessWidget {
                         Expanded(
                           child: ListView(
                             children: toplamlar.entries.map((e) {
-                              final renk =
-                                  AppColors.kategoriRenkler[e.key] ??
+                              final renk = AppColors.kategoriRenkler[e.key] ??
                                   AppColors.textTertiary;
                               final yuzde = genelToplam > 0
                                   ? (e.value / genelToplam * 100)
@@ -1360,6 +1401,355 @@ class _ExportTab extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EXCEL SEÇİM EKRANI (Premium Bottom Sheet)
+// Sadece onaylanmış fişleri gösterir ve seçim yaptırır.
+// ═══════════════════════════════════════════════════════════════════════
+class _ExportSelectionSheet extends StatefulWidget {
+  final DatabaseHelper db;
+  final ScrollController scrollController;
+
+  const _ExportSelectionSheet({
+    required this.db,
+    required this.scrollController,
+  });
+
+  @override
+  State<_ExportSelectionSheet> createState() => _ExportSelectionSheetState();
+}
+
+class _ExportSelectionSheetState extends State<_ExportSelectionSheet> {
+  List<ReceiptData> _approvedReceipts = [];
+  Set<int> _selectedIds = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadApprovedReceipts();
+  }
+
+  Future<void> _loadApprovedReceipts() async {
+    final allReceipts = await widget.db.getAllReceipts();
+    setState(() {
+      // SADECE onaylanmış fişleri filtreliyoruz
+      _approvedReceipts = allReceipts.where((r) => r.isApproved).toList();
+      // Varsayılan olarak tümünü seçili hale getirerek kullanıcıya kolaylık sağlıyoruz
+      _selectedIds = _approvedReceipts.map((r) => r.id!).toSet();
+      _isLoading = false;
+    });
+  }
+
+  void _toggleSelection(int id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _toggleAll() {
+    setState(() {
+      if (_selectedIds.length == _approvedReceipts.length) {
+        _selectedIds.clear(); // Hepsini kaldır
+      } else {
+        _selectedIds =
+            _approvedReceipts.map((r) => r.id!).toSet(); // Hepsini seç
+      }
+    });
+  }
+
+  Future<void> _exportSelected() async {
+    if (_selectedIds.isEmpty) return;
+
+    // Sadece ID'si seçilmiş olan fişleri filtrele
+    final selectedReceipts =
+        _approvedReceipts.where((r) => _selectedIds.contains(r.id)).toList();
+
+    // Bottom sheet'i kapat
+    Navigator.pop(context);
+
+    // Servise gönder ve Excel oluştur
+    await ExcelExportService.exportReceiptsToExcel(selectedReceipts);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        children: [
+          // ── Tutamaç ──
+          Container(
+            width: 44,
+            height: 5,
+            margin: const EdgeInsets.only(top: 12, bottom: 12),
+            decoration: BoxDecoration(
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+
+          // ── Başlık ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF107C41).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.explicit_rounded,
+                    color: Color(0xFF107C41),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Excel\'e Aktar',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      Text(
+                        'Dışa aktarılacak fişleri seçin',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── Seçim Araç Çubuğu ──
+          if (!_isLoading && _approvedReceipts.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_selectedIds.length} Fiş Seçildi',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _toggleAll,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                    ),
+                    child: Text(
+                      _selectedIds.length == _approvedReceipts.length
+                          ? 'Tümünü Kaldır'
+                          : 'Tümünü Seç',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Liste ──
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _approvedReceipts.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        controller: widget.scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: _approvedReceipts.length,
+                        itemBuilder: (context, index) {
+                          final receipt = _approvedReceipts[index];
+                          final isSelected = _selectedIds.contains(receipt.id);
+
+                          return GestureDetector(
+                            onTap: () => _toggleSelection(receipt.id!),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xFF107C41).withOpacity(0.08)
+                                    : AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? const Color(0xFF107C41).withOpacity(0.5)
+                                      : AppColors.divider,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Özel Checkbox
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color(0xFF107C41)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? const Color(0xFF107C41)
+                                            : AppColors.textTertiary,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: isSelected
+                                        ? const Icon(Icons.check,
+                                            size: 16, color: Colors.white)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          receipt.firmaAdi.isEmpty
+                                              ? 'Bilinmeyen Firma'
+                                              : receipt.firmaAdi,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${receipt.tarih} • ${receipt.kategori}',
+                                          style: const TextStyle(
+                                            color: AppColors.textTertiary,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${receipt.toplamTutar} ₺',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+          ),
+
+          // ── Aksiyon Butonu ──
+          Container(
+            padding: EdgeInsets.fromLTRB(
+                20, 16, 20, MediaQuery.of(context).viewPadding.bottom + 16),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.divider)),
+            ),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _selectedIds.isEmpty
+                    ? AppColors.surfaceAlt
+                    : const Color(0xFF107C41),
+                foregroundColor: _selectedIds.isEmpty
+                    ? AppColors.textTertiary
+                    : Colors.white,
+                minimumSize: const Size(double.infinity, 54),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.file_download_outlined, size: 22),
+              label: Text(
+                _selectedIds.isEmpty
+                    ? 'Fiş Seçilmedi'
+                    : 'Seçili ${_selectedIds.length} Fişi İndir',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
+              onPressed: _selectedIds.isEmpty ? null : _exportSelected,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              color: AppColors.surfaceAlt,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.done_all_rounded,
+              size: 32,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Onaylanmış Fiş Yok',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Excel\'e aktarabilmek için önce\ngeçmiş sekmesinden fiş onaylamalısınız.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: AppColors.textTertiary, fontSize: 13, height: 1.4),
+          ),
+        ],
       ),
     );
   }
