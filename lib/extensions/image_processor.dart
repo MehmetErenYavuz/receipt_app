@@ -249,9 +249,8 @@ class ImageProcessor {
     final List<int> lumCache = List<int>.filled(width * height, 0);
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        lumCache[y * width + x] = img
-            .getLuminance(image.getPixel(x, y))
-            .round();
+        lumCache[y * width + x] =
+            img.getLuminance(image.getPixel(x, y)).round();
       }
     }
 

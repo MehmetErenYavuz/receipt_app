@@ -4,7 +4,9 @@
 // TÜRK FİŞLERİ İÇİN OCR HATA DÜZELTME KÜTÜPHANESİ
 // ═══════════════════════════════════════════════════════════════════════
 // Mevcut fixOcrConfusion getter'ı KORUNDU.
-// YENİ: Buruşuk fişler için ekstra düzeltme katmanları eklendi.
+// YENİ: SmartWordCorrector entegrasyonu eklendi.
+
+import '../utils/smart_word_corrector.dart';
 
 extension OcrStringExtension on String {
   // ═════════════════════════════════════════════════════════════════════
@@ -30,7 +32,6 @@ extension OcrStringExtension on String {
     result = result.replaceAll('T9PLAM', 'TOPLAM');
     result = result.replaceAll('TQPLAM', 'TOPLAM');
     result = result.replaceAll('TOPLAН', 'TOPLAM');
-    result = result.replaceAll('T0PLAН', 'TOPLAM');
     result = result.replaceAll('T0PLAН', 'TOPLAM');
     result = result.replaceAll('T0PLA8', 'TOPLAM');
 
@@ -73,69 +74,82 @@ extension OcrStringExtension on String {
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: AGRESİF TEMİZLEME — Buruşuk fişler için
-  // Standart fixOcrConfusion'dan SONRA çağrılır.
-  // Daha fazla karakter düzeltir ama bazı yanlış pozitiflere yol açabilir,
-  // bu yüzden sadece güven düşük olduğunda kullanılır.
+  // YENİ: AKILLI KELİME DÜZELTME — Firma adı için en güçlü katman
+  // SmartWordCorrector kullanarak "0PERA" → "OPERA" düzeltmesi yapar
+  // ═════════════════════════════════════════════════════════════════════
+  String get smartWordCorrect {
+    return SmartWordCorrector.correctSentence(this);
+  }
+
+  // ═════════════════════════════════════════════════════════════════════
+  // AGRESİF TEMİZLEME — Buruşuk fişler için
   // ═════════════════════════════════════════════════════════════════════
   String get aggressiveOcrClean {
     String s = this;
 
-    // 1. Parçalanmış kelime yeniden birleştirme (buruşuk fişlerde sık)
-    // "TOP LAM" → "TOPLAM" (1-2 karakter parçalanma)
+    // 1. Parçalanmış kelime yeniden birleştirme
     s = _rejoinFragmentedWords(s);
 
-    // 2. Yaygın kelime fuzzy düzeltmeleri (Levenshtein 1 mesafe)
+    // 2. Yaygın kelime fuzzy düzeltmeleri
     final fragmentMap = {
-      // TOPLAM varyantları
-      'TOPL AM': 'TOPLAM', 'TOP LAM': 'TOPLAM', 'TOPL M': 'TOPLAM',
-      'OPLAM': 'TOPLAM', 'TPLAM': 'TOPLAM', 'TOLAM': 'TOPLAM',
-      'TOPLA': 'TOPLAM', 'TOPLAH': 'TOPLAM', 'TOPLAN': 'TOPLAM',
-      // GENEL TOPLAM
-      'GENEL TOPLA': 'GENEL TOPLAM', 'G TOPLAM': 'GENEL TOPLAM',
-      'GNL TOPLAM': 'GENEL TOPLAM', 'GENE TOPLAM': 'GENEL TOPLAM',
-      // KDV
-      'K D V': 'KDV', 'K.D.V': 'KDV', 'KD V': 'KDV', 'K DV': 'KDV',
-      'KDV ': 'KDV ', 'KDU': 'KDV', 'KDМ': 'KDV',
-      // TUTAR
-      'TUTA': 'TUTAR', 'UTAR': 'TUTAR', 'TUAR': 'TUTAR',
-      // FİŞ NO
-      'F NO': 'FİŞ NO', 'FS NO': 'FİŞ NO', 'IŞ NO': 'FİŞ NO',
-      // TARİH
-      'TARH': 'TARİH', 'TARIH': 'TARİH', 'TRH': 'TARİH',
-      'TAIH': 'TARİH', 'TRIH': 'TARİH',
-      // SAAT
-      'SAA': 'SAAT', 'SAT': 'SAAT', 'SAA T': 'SAAT',
-      // VERGI/VKN
-      'VRG NO': 'VKN', 'VERGI NO': 'VKN', 'V K N': 'VKN',
-      'V D': 'V.D.', 'V.D': 'V.D.', 'VD ': 'V.D. ',
-      // ARA TOPLAM
-      'ARA TOPLA': 'ARA TOPLAM', 'A TOPLAM': 'ARA TOPLAM',
-      'AR TOPLAM': 'ARA TOPLAM', 'ARATOPLA': 'ARATOPLAM',
-      // MATRAH
-      'MATRA': 'MATRAH', 'MTRAH': 'MATRAH', 'MATR': 'MATRAH',
-      // NAKIT
-      'NAK T': 'NAKIT', 'NAIT': 'NAKIT', 'NKIT': 'NAKIT',
-      // BANKA / KART
-      'BNK': 'BANKA', 'KRT': 'KART', 'KART ': 'KART ',
-      // MIGROS
-      'MGROS': 'MIGROS', 'MIROS': 'MIGROS', 'MIGRS': 'MIGROS',
+      'TOPL AM': 'TOPLAM',
+      'TOP LAM': 'TOPLAM',
+      'TOPL M': 'TOPLAM',
+      'OPLAM': 'TOPLAM',
+      'TPLAM': 'TOPLAM',
+      'TOLAM': 'TOPLAM',
+      'TOPLA': 'TOPLAM',
+      'TOPLAH': 'TOPLAM',
+      'TOPLAN': 'TOPLAM',
+      'GENEL TOPLA': 'GENEL TOPLAM',
+      'G TOPLAM': 'GENEL TOPLAM',
+      'GNL TOPLAM': 'GENEL TOPLAM',
+      'GENE TOPLAM': 'GENEL TOPLAM',
+      'K D V': 'KDV',
+      'K.D.V': 'KDV',
+      'KD V': 'KDV',
+      'K DV': 'KDV',
+      'KDU': 'KDV',
+      'TUTA': 'TUTAR',
+      'UTAR': 'TUTAR',
+      'TUAR': 'TUTAR',
+      'F NO': 'FİŞ NO',
+      'FS NO': 'FİŞ NO',
+      'IŞ NO': 'FİŞ NO',
+      'TARH': 'TARİH',
+      'TRH': 'TARİH',
+      'TAIH': 'TARİH',
+      'TRIH': 'TARİH',
+      'SAA': 'SAAT',
+      'SAT': 'SAAT',
+      'SAA T': 'SAAT',
+      'VRG NO': 'VKN',
+      'V K N': 'VKN',
+      'V D': 'V.D.',
+      'VD ': 'V.D. ',
+      'ARA TOPLA': 'ARA TOPLAM',
+      'A TOPLAM': 'ARA TOPLAM',
+      'AR TOPLAM': 'ARA TOPLAM',
+      'MATRA': 'MATRAH',
+      'MTRAH': 'MATRAH',
+      'MATR': 'MATRAH',
+      'NAK T': 'NAKIT',
+      'NAIT': 'NAKIT',
+      'NKIT': 'NAKIT',
+      'BNK': 'BANKA',
+      'KRT': 'KART',
+      'MGROS': 'MIGROS',
+      'MIROS': 'MIGROS',
+      'MIGRS': 'MIGROS',
     };
 
     fragmentMap.forEach((key, val) {
       s = s.replaceAll(key, val);
     });
 
-    // 3. Türkçe karakter OCR hataları (buruşukta sık)
-    // İ ↔ I, Ş ↔ S, Ğ ↔ G karışıklıkları
-    // Sadece kelime içinde, başında değil
     final tcMap = {
-      'IS\b': 'İŞ', 'IG\b': 'İĞ',
-      // "MUSTERİ" → "MÜŞTERİ" gibi
       'MUSTERI': 'MÜŞTERİ',
-      'MUSTERİ': 'MÜŞTERİ',
       'TESEKKUR': 'TEŞEKKÜR',
-      'TESEKKÜR': 'TEŞEKKÜR',
       'BEKLERIZ': 'BEKLERİZ',
       'GUNLER': 'GÜNLER',
       'HOSGELDINIZ': 'HOŞGELDİNİZ',
@@ -149,36 +163,14 @@ extension OcrStringExtension on String {
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: FİYAT BAĞLAMI TEMİZLEMESİ
-  // Sayı bloklarındaki yaygın karışıklıkları düzeltir.
-  // Buruşuk fişlerde "1l9,40" gibi 1↔l, O↔0 karışıklığı çok yaygındır.
+  // FİYAT BAĞLAMI TEMİZLEMESİ
   // ═════════════════════════════════════════════════════════════════════
   String get fixPriceContext {
     String s = this;
 
-    // Sayı blokları içindeki harf karakterlerini rakama dönüştür
-    // Örnek: "11l,40" → "111,40", "12O,5O" → "120,50"
-    s = s.replaceAllMapped(RegExp(r'(\d)([OoIlBSGZqQ])(\d)'), (m) {
-      final letter = m[2]!;
-      final digit = const {
-            'O': '0',
-            'o': '0',
-            'Q': '0',
-            'I': '1',
-            'l': '1',
-            'B': '8',
-            'S': '5',
-            'G': '6',
-            'Z': '2',
-            'q': '9',
-          }[letter] ??
-          letter;
-      return '${m[1]}$digit${m[3]}';
-    });
-
-    // Birden çok kez tekrarla (örn. "1l9,4O" → 2 geçişe ihtiyaç var)
-    for (int i = 0; i < 2; i++) {
-      s = s.replaceAllMapped(RegExp(r'(\d)([OoIlBSGZqQ])(\d)'), (m) {
+    s = s.replaceAllMapped(
+      RegExp(r'(\d)([OoIlBSGZqQ])(\d)'),
+      (m) {
         final letter = m[2]!;
         final digit = const {
               'O': '0',
@@ -194,19 +186,37 @@ extension OcrStringExtension on String {
             }[letter] ??
             letter;
         return '${m[1]}$digit${m[3]}';
-      });
+      },
+    );
+
+    for (int i = 0; i < 2; i++) {
+      s = s.replaceAllMapped(
+        RegExp(r'(\d)([OoIlBSGZqQ])(\d)'),
+        (m) {
+          final letter = m[2]!;
+          final digit = const {
+                'O': '0',
+                'o': '0',
+                'Q': '0',
+                'I': '1',
+                'l': '1',
+                'B': '8',
+                'S': '5',
+                'G': '6',
+                'Z': '2',
+                'q': '9',
+              }[letter] ??
+              letter;
+          return '${m[1]}$digit${m[3]}';
+        },
+      );
     }
 
-    // YENİ: Ondalık ayraç düzeltme
-    // "11940" → "119,40" (eğer 3 rakamdan fazlaysa ve para birimi geliyorsa)
-    // "119 40" → "119,40" (boşluk virgül yerine geçmiş)
     s = s.replaceAllMapped(
       RegExp(r'(\d{1,4})\s+(\d{2})(?=\s*(TL|₺|$|\n))'),
       (m) => '${m[1]},${m[2]}',
     );
 
-    // Bir nokta-virgül karışıklığı: "11.940" → "11,940" değil
-    // Ama "119.40" muhtemelen "119,40" olmalı (Türkçe)
     s = s.replaceAllMapped(
       RegExp(r'(\d{1,3})\.(\d{2})(?!\d)'),
       (m) => '${m[1]},${m[2]}',
@@ -216,35 +226,26 @@ extension OcrStringExtension on String {
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: TARİH BAĞLAMI DÜZELTMESİ
+  // TARİH BAĞLAMI DÜZELTMESİ
   // ═════════════════════════════════════════════════════════════════════
   String get fixDateContext {
     String s = this;
 
-    // OCR'da "/" yerine "1", "I", "l" görmesi yaygın
-    // 15I05I2026 → 15/05/2026
     s = s.replaceAllMapped(
       RegExp(r'(\d{2})[Il](\d{2})[Il](\d{4})'),
-      (m) => '${m[1]}.${m[2]}.${m[3]}',
+      (m) => '${m[1]}/${m[2]}/${m[3]}',
     );
 
-    // Karma ayraçları normalleştir
     s = s.replaceAllMapped(
       RegExp(r'(\d{2})[.\-/](\d{2})[.\-/](\d{4})'),
-      (m) => '${m[1]}.${m[2]}.${m[3]}',
-    );
-
-    // 15052026 (8 hane) → 15.05.2026
-    s = s.replaceAllMapped(
-      RegExp(r'\b(\d{2})(\d{2})(20\d{2})\b'),
-      (m) => '${m[1]}.${m[2]}.${m[3]}',
+      (m) => '${m[1]}/${m[2]}/${m[3]}',
     );
 
     return s;
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: ONDALIK AYRAÇI NORMALİZE
+  // ONDALIK AYRAÇI NORMALİZE
   // ═════════════════════════════════════════════════════════════════════
   String get normalizeDecimal {
     return replaceAllMapped(
@@ -254,15 +255,14 @@ extension OcrStringExtension on String {
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: TÜM SAFHALARI TEK SEFERDE UYGULA
-  // Parser dışından çağrılmak için pratik tek-seferlik temizleme
+  // TÜM SAFHALARI TEK SEFERDE UYGULA
   // ═════════════════════════════════════════════════════════════════════
   String get fullOcrClean {
     return fixOcrConfusion.fixDateContext;
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // YENİ: TAM TEMİZLEME (buruşuk fişler için)
+  // TAM TEMİZLEME (buruşuk fişler için)
   // ═════════════════════════════════════════════════════════════════════
   String get crumpledOcrClean {
     return fixOcrConfusion.aggressiveOcrClean.fixDateContext.fixPriceContext;
@@ -270,7 +270,6 @@ extension OcrStringExtension on String {
 
   // ═════════════════════════════════════════════════════════════════════
   // PRIVATE: Parçalanmış kelimeleri yeniden birleştir
-  // "TOP LAM" → "TOPLAM" gibi (boşluk eklenmiş kelimeler)
   // ═════════════════════════════════════════════════════════════════════
   String _rejoinFragmentedWords(String text) {
     final knownWords = [
@@ -325,13 +324,9 @@ extension OcrStringExtension on String {
     for (final word in knownWords) {
       if (word.length < 4) continue;
 
-      // 2 karakterden sonra boşluk varsa birleştir
-      // Örn: "TOP LAM" → "TOPLAM"
-      // Pattern: kelimenin ilk N harfi + boşluk + kelimenin kalanı
       for (int split = 2; split < word.length - 1; split++) {
         final first = word.substring(0, split);
         final rest = word.substring(split);
-        // Word boundary ile birlikte ara (yanlış pozitifleri önle)
         final pattern = RegExp('\\b$first $rest\\b');
         result = result.replaceAll(pattern, word);
       }
