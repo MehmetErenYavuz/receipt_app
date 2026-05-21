@@ -303,11 +303,9 @@ class SmartWordCorrector {
       // 2. Eğer önce harf ya da sonra harf varsa, bu muhtemelen HARF'tir
       //    Örnek: K0TON → KOTON, OPER0 → OPERA değil ama
       //    bu durumda "0" sondaysa ve önce harf varsa harf olabilir
-      final prevIsLetter =
-          prevChar.isNotEmpty &&
+      final prevIsLetter = prevChar.isNotEmpty &&
           RegExp(r'[a-zA-ZğüşıöçĞÜŞİÖÇ]').hasMatch(prevChar);
-      final nextIsLetter =
-          nextChar.isNotEmpty &&
+      final nextIsLetter = nextChar.isNotEmpty &&
           RegExp(r'[a-zA-ZğüşıöçĞÜŞİÖÇ]').hasMatch(nextChar);
 
       // En az bir komşusu harf ise, bu rakam harf adayı
