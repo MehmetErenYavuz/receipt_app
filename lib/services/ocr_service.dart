@@ -10,11 +10,14 @@ class OcrService {
     script: TextRecognitionScript.latin,
   );
 
-  // DİKKAT: Artık String değil, detaylı koordinatları içeren RecognizedText objesi dönüyoruz
   Future<RecognizedText?> processImage(XFile imageFile) async {
     try {
       final inputImage = InputImage.fromFilePath(imageFile.path);
-      return await _textRecognizer.processImage(inputImage);
+      final result = await _textRecognizer.processImage(inputImage);
+      print("═══ ML KİT HAM METİN ═══");
+      print(result.text);
+      print("═══ METİN SONU ═══");
+      return result;
     } catch (e) {
       print("OCR Hatası: $e");
       return null;
