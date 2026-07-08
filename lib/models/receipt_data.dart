@@ -34,6 +34,11 @@ class ReceiptData {
   String paraUstu;
   String paraBirimi;
 
+  // ── Ödeme bacağı tutarları (in-memory; DB'ye yazılmaz) ──
+  // NER rescue havuzu (CARD_PAID/CASH_PAID) + ₺→6 teyidi için parser doldurur.
+  String nakitTutar;
+  String kartTutar;
+
   // ── Yakıt Fişi Özel Alanları ──
   String? yakitTuru;
   String? yakitLitre;
@@ -50,6 +55,12 @@ class ReceiptData {
   // ── Kalite ──
   Map<String, double> confidenceScores;
   String? uyari;
+
+  // ── NER (on-device model) ──
+  /// §5.2 ham NER çıktısı (output_contract.md şeması, JSON string). Saha verisi
+  /// toplama + arkadaşın Python çıktısıyla parite kıyası için saklanır. NER
+  /// çalışmadıysa (model yok / fallback) null.
+  String? nerJson;
 
   ReceiptData({
     this.id,
@@ -76,6 +87,8 @@ class ReceiptData {
     this.odemeYontemi = '',
     this.paraUstu = '',
     this.paraBirimi = 'TL',
+    this.nakitTutar = '',
+    this.kartTutar = '',
     this.yakitTuru,
     this.yakitLitre,
     this.pompaNo,
@@ -85,6 +98,7 @@ class ReceiptData {
     this.imagePath,
     Map<String, double>? confidenceScores,
     this.uyari,
+    this.nerJson,
   }) : kdvDetay = kdvDetay ?? [],
        confidenceScores = confidenceScores ?? {};
 
@@ -116,6 +130,8 @@ class ReceiptData {
     String? odemeYontemi,
     String? paraUstu,
     String? paraBirimi,
+    String? nakitTutar,
+    String? kartTutar,
     String? yakitTuru,
     String? yakitLitre,
     String? pompaNo,
@@ -125,6 +141,7 @@ class ReceiptData {
     String? imagePath,
     Map<String, double>? confidenceScores,
     String? uyari,
+    String? nerJson,
   }) {
     return ReceiptData(
       id: id ?? this.id,
@@ -151,6 +168,8 @@ class ReceiptData {
       odemeYontemi: odemeYontemi ?? this.odemeYontemi,
       paraUstu: paraUstu ?? this.paraUstu,
       paraBirimi: paraBirimi ?? this.paraBirimi,
+      nakitTutar: nakitTutar ?? this.nakitTutar,
+      kartTutar: kartTutar ?? this.kartTutar,
       yakitTuru: yakitTuru ?? this.yakitTuru,
       yakitLitre: yakitLitre ?? this.yakitLitre,
       pompaNo: pompaNo ?? this.pompaNo,
@@ -160,6 +179,7 @@ class ReceiptData {
       imagePath: imagePath ?? this.imagePath,
       confidenceScores: confidenceScores ?? this.confidenceScores,
       uyari: uyari ?? this.uyari,
+      nerJson: nerJson ?? this.nerJson,
     );
   }
 

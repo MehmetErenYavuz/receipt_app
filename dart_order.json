@@ -1,0 +1,4509 @@
+{
+  "generated_by": "dart",
+  "source": "golden_docs.json",
+  "row_grouping": {
+    "y_center": "(top + bottom) / 2",
+    "tolerance": "clamp(height * 0.65, 8, 28)   (height = bottom - top)",
+    "assign": "eleman akış sırasında, |row.yCenter - yc| < tol olan İLK satıra eklenir; satır yCenter'ı çalışan ortalama ile güncellenir",
+    "row_sort": "yCenter artan; eşitlikte satırdaki min input-order",
+    "token_sort": "left artan; eşitlikte input-order (stable)",
+    "note": "order.text HAM token birleşimidir (OCR düzeltmesi yok)."
+  },
+  "documents": [
+    {
+      "image_id": "img_89e52c0d4868",
+      "element_count": 96,
+      "row_count": 28,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 182.5,
+          "tokens": [
+            "EBRU",
+            "GIDA"
+          ],
+          "text": "EBRU GIDA"
+        },
+        {
+          "index": 1,
+          "y_center": 222.83,
+          "tokens": [
+            "52T25o0:olufAa",
+            "ÇIGDEM",
+            "OKUR"
+          ],
+          "text": "52T25o0:olufAa ÇIGDEM OKUR"
+        },
+        {
+          "index": 2,
+          "y_center": 259.4,
+          "tokens": [
+            "Sahabiye",
+            "mh",
+            "Ahmet",
+            "paşa",
+            "Cd"
+          ],
+          "text": "Sahabiye mh Ahmet paşa Cd"
+        },
+        {
+          "index": 3,
+          "y_center": 297.5,
+          "tokens": [
+            "NO",
+            "18/C"
+          ],
+          "text": "NO 18/C"
+        },
+        {
+          "index": 4,
+          "y_center": 333.5,
+          "tokens": [
+            "Kocasinan/KAYSERI"
+          ],
+          "text": "Kocasinan/KAYSERI"
+        },
+        {
+          "index": 5,
+          "y_center": 370.0,
+          "tokens": [
+            "G",
+            "NESİBE",
+            "VD",
+            "52906239916"
+          ],
+          "text": "G NESİBE VD 52906239916"
+        },
+        {
+          "index": 6,
+          "y_center": 408.0,
+          "tokens": [
+            "TEL",
+            "0533",
+            "167",
+            "6486"
+          ],
+          "text": "TEL 0533 167 6486"
+        },
+        {
+          "index": 7,
+          "y_center": 462.13,
+          "tokens": [
+            "28-04-2026",
+            "FiŞ",
+            "NO",
+            "8"
+          ],
+          "text": "28-04-2026 FiŞ NO 8"
+        },
+        {
+          "index": 8,
+          "y_center": 500.0,
+          "tokens": [
+            "SAAT",
+            "10",
+            "44"
+          ],
+          "text": "SAAT 10 44"
+        },
+        {
+          "index": 9,
+          "y_center": 557.0,
+          "tokens": [
+            "TEMEL",
+            "GIDA",
+            "Z1",
+            "*290,",
+            "00"
+          ],
+          "text": "TEMEL GIDA Z1 *290, 00"
+        },
+        {
+          "index": 10,
+          "y_center": 618.25,
+          "tokens": [
+            "TOPKDV",
+            "*2,87"
+          ],
+          "text": "TOPKDV *2,87"
+        },
+        {
+          "index": 11,
+          "y_center": 667.25,
+          "tokens": [
+            "TOPL",
+            "AM",
+            "*290,",
+            "00"
+          ],
+          "text": "TOPL AM *290, 00"
+        },
+        {
+          "index": 12,
+          "y_center": 728.25,
+          "tokens": [
+            "KREDI",
+            "KARTI",
+            "•290,",
+            "00"
+          ],
+          "text": "KREDI KARTI •290, 00"
+        },
+        {
+          "index": 13,
+          "y_center": 824.75,
+          "tokens": [
+            "SYERI",
+            "NO:",
+            "029300000901231",
+            "POS",
+            "NO:",
+            "PS535402"
+          ],
+          "text": "SYERI NO: 029300000901231 POS NO: PS535402"
+        },
+        {
+          "index": 14,
+          "y_center": 860.8,
+          "tokens": [
+            "İSLEM",
+            "NO:MKO007",
+            "BATCH",
+            "NO:0105",
+            "10:44"
+          ],
+          "text": "İSLEM NO:MKO007 BATCH NO:0105 10:44"
+        },
+        {
+          "index": 15,
+          "y_center": 899.0,
+          "tokens": [
+            "SATIŞ"
+          ],
+          "text": "SATIŞ"
+        },
+        {
+          "index": 16,
+          "y_center": 931.13,
+          "tokens": [
+            "****",
+            "***K",
+            "****",
+            "7077"
+          ],
+          "text": "**** ***K **** 7077"
+        },
+        {
+          "index": 17,
+          "y_center": 966.5,
+          "tokens": [
+            "TUTAR"
+          ],
+          "text": "TUTAR"
+        },
+        {
+          "index": 18,
+          "y_center": 1001.5,
+          "tokens": [
+            "290,00",
+            "TL"
+          ],
+          "text": "290,00 TL"
+        },
+        {
+          "index": 19,
+          "y_center": 1036.0,
+          "tokens": [
+            "VAKIFBANK",
+            "MC"
+          ],
+          "text": "VAKIFBANK MC"
+        },
+        {
+          "index": 20,
+          "y_center": 1070.17,
+          "tokens": [
+            "AID",
+            ":",
+            "A0000000041010"
+          ],
+          "text": "AID : A0000000041010"
+        },
+        {
+          "index": 21,
+          "y_center": 1104.5,
+          "tokens": [
+            "ONAY",
+            "KODU",
+            ":",
+            "420011"
+          ],
+          "text": "ONAY KODU : 420011"
+        },
+        {
+          "index": 22,
+          "y_center": 1139.72,
+          "tokens": [
+            "TUTAR",
+            "KARŞ",
+            "IL",
+            "1GI",
+            "MAL",
+            "VEYA",
+            "HIZNET",
+            "i",
+            "ALDIM"
+          ],
+          "text": "TUTAR KARŞ IL 1GI MAL VEYA HIZNET i ALDIM"
+        },
+        {
+          "index": 23,
+          "y_center": 1174.88,
+          "tokens": [
+            "K**TE",
+            "MASSI",
+            "Z",
+            "IŞLEM***"
+          ],
+          "text": "K**TE MASSI Z IŞLEM***"
+        },
+        {
+          "index": 24,
+          "y_center": 1322.5,
+          "tokens": [
+            "KuUEYTTÜRK"
+          ],
+          "text": "KuUEYTTÜRK"
+        },
+        {
+          "index": 25,
+          "y_center": 1359.5,
+          "tokens": [
+            "HUŞTERİ",
+            "NÜsHASI"
+          ],
+          "text": "HUŞTERİ NÜsHASI"
+        },
+        {
+          "index": 26,
+          "y_center": 1506.58,
+          "tokens": [
+            "EKÜ",
+            "NO",
+            "1",
+            "Z",
+            "NO",
+            "117"
+          ],
+          "text": "EKÜ NO 1 Z NO 117"
+        },
+        {
+          "index": 27,
+          "y_center": 1536.33,
+          "tokens": [
+            "F",
+            "AT",
+            "0000547336"
+          ],
+          "text": "F AT 0000547336"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "EBRUGIDA",
+        "firmaAdresi": "Sahabiye mh Ahmet paşa Cd",
+        "vergiDairesi": "",
+        "vergiTcNo": "52906239916",
+        "belgeTuru": "ÖKC Fişi",
+        "fisNo": "",
+        "seriNo": "",
+        "zNo": "117",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "28.04.2026",
+        "saat": "10:44",
+        "kdvDetay": [],
+        "toplamKdv": "2.87",
+        "kdvHaricToplam": "",
+        "araToplam": "",
+        "toplamTutar": "290.00",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": "52 T 2500",
+        "telefon": "05331676486",
+        "kategori": "Yakıt",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_5dbe69718024",
+      "element_count": 113,
+      "row_count": 30,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 271.0,
+          "tokens": [
+            "FENOMEN"
+          ],
+          "text": "FENOMEN"
+        },
+        {
+          "index": 1,
+          "y_center": 303.0,
+          "tokens": [
+            "NUH",
+            "ERGUL"
+          ],
+          "text": "NUH ERGUL"
+        },
+        {
+          "index": 2,
+          "y_center": 335.58,
+          "tokens": [
+            "CHELOro",
+            "HALEF",
+            "HOCA",
+            "CAD.",
+            "ÜLKER",
+            "APT"
+          ],
+          "text": "CHELOro HALEF HOCA CAD. ÜLKER APT"
+        },
+        {
+          "index": 3,
+          "y_center": 367.5,
+          "tokens": [
+            "NO",
+            "61/A",
+            "TALAS/KAYSERİ"
+          ],
+          "text": "NO 61/A TALAS/KAYSERİ"
+        },
+        {
+          "index": 4,
+          "y_center": 401.5,
+          "tokens": [
+            "ERC.",
+            "V.",
+            "D",
+            "TC:",
+            "15410493816"
+          ],
+          "text": "ERC. V. D TC: 15410493816"
+        },
+        {
+          "index": 5,
+          "y_center": 437.0,
+          "tokens": [
+            "O8",
+            "TEŞEKKÜRL",
+            "ER"
+          ],
+          "text": "O8 TEŞEKKÜRL ER"
+        },
+        {
+          "index": 6,
+          "y_center": 482.5,
+          "tokens": [
+            "11-04-2026",
+            "FiŞ",
+            "NO:",
+            "45"
+          ],
+          "text": "11-04-2026 FiŞ NO: 45"
+        },
+        {
+          "index": 7,
+          "y_center": 520.0,
+          "tokens": [
+            "SAAT:",
+            "18.",
+            "10"
+          ],
+          "text": "SAAT: 18. 10"
+        },
+        {
+          "index": 8,
+          "y_center": 565.4,
+          "tokens": [
+            "TESKTİL",
+            "Z10",
+            "*1.",
+            "147,",
+            "00"
+          ],
+          "text": "TESKTİL Z10 *1. 147, 00"
+        },
+        {
+          "index": 9,
+          "y_center": 624.5,
+          "tokens": [
+            "TOPKDV",
+            "*104,27"
+          ],
+          "text": "TOPKDV *104,27"
+        },
+        {
+          "index": 10,
+          "y_center": 669.0,
+          "tokens": [
+            "TOPLAM",
+            "*1.147,00"
+          ],
+          "text": "TOPLAM *1.147,00"
+        },
+        {
+          "index": 11,
+          "y_center": 723.75,
+          "tokens": [
+            "KREDİ",
+            "KART",
+            "I",
+            "*1.",
+            "147,",
+            "00"
+          ],
+          "text": "KREDİ KART I *1. 147, 00"
+        },
+        {
+          "index": 12,
+          "y_center": 829.17,
+          "tokens": [
+            "iŞYERİ",
+            "NO",
+            "2686614468"
+          ],
+          "text": "iŞYERİ NO 2686614468"
+        },
+        {
+          "index": 13,
+          "y_center": 868.13,
+          "tokens": [
+            "TERMİNAL",
+            "NO",
+            ":",
+            "000396C7"
+          ],
+          "text": "TERMİNAL NO : 000396C7"
+        },
+        {
+          "index": 14,
+          "y_center": 917.5,
+          "tokens": [
+            "MÜŞTERİ",
+            "NÜSHASI"
+          ],
+          "text": "MÜŞTERİ NÜSHASI"
+        },
+        {
+          "index": 15,
+          "y_center": 958.5,
+          "tokens": [
+            "SAT",
+            "IŞ"
+          ],
+          "text": "SAT IŞ"
+        },
+        {
+          "index": 16,
+          "y_center": 995.17,
+          "tokens": [
+            "18:",
+            "10:",
+            "18",
+            "M",
+            "ONL",
+            "INE"
+          ],
+          "text": "18: 10: 18 M ONL INE"
+        },
+        {
+          "index": 17,
+          "y_center": 1031.2,
+          "tokens": [
+            "AAAA",
+            "AAA",
+            "AAAA",
+            "992",
+            "7"
+          ],
+          "text": "AAAA AAA AAAA 992 7"
+        },
+        {
+          "index": 18,
+          "y_center": 1080.8,
+          "tokens": [
+            "TUTAR",
+            ":",
+            "1.",
+            "147.",
+            "B8TL"
+          ],
+          "text": "TUTAR : 1. 147. B8TL"
+        },
+        {
+          "index": 19,
+          "y_center": 1109.67,
+          "tokens": [
+            "KARŞILI6I",
+            "HAL/HÍZH",
+            "ALDIM"
+          ],
+          "text": "KARŞILI6I HAL/HÍZH ALDIM"
+        },
+        {
+          "index": 20,
+          "y_center": 1141.33,
+          "tokens": [
+            "İŞLEN",
+            "TEnASST2",
+            "TAHANLANHISTIR"
+          ],
+          "text": "İŞLEN TEnASST2 TAHANLANHISTIR"
+        },
+        {
+          "index": 21,
+          "y_center": 1189.67,
+          "tokens": [
+            "SH:",
+            "BB36",
+            "ONAY",
+            "KODU:",
+            "GRUP",
+            "32",
+            "105B",
+            "NO:",
+            "022"
+          ],
+          "text": "SH: BB36 ONAY KODU: GRUP 32 105B NO: 022"
+        },
+        {
+          "index": 22,
+          "y_center": 1221.6,
+          "tokens": [
+            "REF",
+            "NO:",
+            "AB60BBBOB41010",
+            "3843288188",
+            "HASTERCARD"
+          ],
+          "text": "REF NO: AB60BBBOB41010 3843288188 HASTERCARD"
+        },
+        {
+          "index": 23,
+          "y_center": 1248.75,
+          "tokens": [
+            "AID:",
+            ":92.31.e8"
+          ],
+          "text": "AID: :92.31.e8"
+        },
+        {
+          "index": 24,
+          "y_center": 1261.5,
+          "tokens": [
+            "Uer,"
+          ],
+          "text": "Uer,"
+        },
+        {
+          "index": 25,
+          "y_center": 1284.92,
+          "tokens": [
+            "BU",
+            "iLEn",
+            "YURT",
+            "İCi",
+            "KARTLA",
+            "YAPILIMIŞTIR"
+          ],
+          "text": "BU iLEn YURT İCi KARTLA YAPILIMIŞTIR"
+        },
+        {
+          "index": 26,
+          "y_center": 1316.0,
+          "tokens": [
+            "BU",
+            "BELGEYİ",
+            "SAKLAY",
+            "INIZ"
+          ],
+          "text": "BU BELGEYİ SAKLAY INIZ"
+        },
+        {
+          "index": 27,
+          "y_center": 1383.0,
+          "tokens": [
+            "Gtapıkredi"
+          ],
+          "text": "Gtapıkredi"
+        },
+        {
+          "index": 28,
+          "y_center": 1496.57,
+          "tokens": [
+            "EKÜ",
+            "NO:",
+            "1",
+            "2",
+            "NO:",
+            "3.",
+            "584"
+          ],
+          "text": "EKÜ NO: 1 2 NO: 3. 584"
+        },
+        {
+          "index": 29,
+          "y_center": 1532.0,
+          "tokens": [
+            "F",
+            "AT",
+            "O000110524"
+          ],
+          "text": "F AT O000110524"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "NUHERGUL",
+        "firmaAdresi": "CHELOro HALEF HOCA CAD. ÜLKER APT",
+        "vergiDairesi": "",
+        "vergiTcNo": "15410493816",
+        "belgeTuru": "ÖKC Fişi",
+        "fisNo": "45",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "11.04.2026",
+        "saat": "",
+        "kdvDetay": [],
+        "toplamKdv": "104.27",
+        "kdvHaricToplam": "",
+        "araToplam": "",
+        "toplamTutar": "1147.00",
+        "odemeYontemi": "Kart",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": null,
+        "kategori": "Diğer",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_c3dcf29a4fa8",
+      "element_count": 144,
+      "row_count": 37,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 133.0,
+          "tokens": [
+            "0-9r08.i80D9n"
+          ],
+          "text": "0-9r08.i80D9n"
+        },
+        {
+          "index": 1,
+          "y_center": 168.5,
+          "tokens": [
+            "KaEARŞİiv",
+            "FATURA"
+          ],
+          "text": "KaEARŞİiv FATURA"
+        },
+        {
+          "index": 2,
+          "y_center": 310.5,
+          "tokens": [
+            "Mgz",
+            "Ada:",
+            "Gunsazak",
+            "Kayseri",
+            "/",
+            "Mgz",
+            "Kodu:",
+            "7904"
+          ],
+          "text": "Mgz Ada: Gunsazak Kayseri / Mgz Kodu: 7904"
+        },
+        {
+          "index": 3,
+          "y_center": 343.5,
+          "tokens": [
+            "A101",
+            "YENI",
+            "MAGAZACILIK",
+            "A.Ș.",
+            "M.",
+            "Kodu:",
+            "7904"
+          ],
+          "text": "A101 YENI MAGAZACILIK A.Ș. M. Kodu: 7904"
+        },
+        {
+          "index": 4,
+          "y_center": 375.31,
+          "tokens": [
+            "Gesi",
+            "Fatih",
+            "Mah,",
+            "Gün",
+            "Sazak",
+            "Cad.",
+            ",",
+            "Eleganc"
+          ],
+          "text": "Gesi Fatih Mah, Gün Sazak Cad. , Eleganc"
+        },
+        {
+          "index": 5,
+          "y_center": 407.0,
+          "tokens": [
+            "USKUDAR/9480423762"
+          ],
+          "text": "USKUDAR/9480423762"
+        },
+        {
+          "index": 6,
+          "y_center": 438.5,
+          "tokens": [
+            "Tarih:",
+            "11/04/2026",
+            "Saat:",
+            "19:34"
+          ],
+          "text": "Tarih: 11/04/2026 Saat: 19:34"
+        },
+        {
+          "index": 7,
+          "y_center": 469.5,
+          "tokens": [
+            "Belge",
+            "No:",
+            "79040021104606030087"
+          ],
+          "text": "Belge No: 79040021104606030087"
+        },
+        {
+          "index": 8,
+          "y_center": 499.25,
+          "tokens": [
+            "ETTN",
+            ":5283d610-3238-4689-b386-3d1618137397"
+          ],
+          "text": "ETTN :5283d610-3238-4689-b386-3d1618137397"
+        },
+        {
+          "index": 9,
+          "y_center": 563.5,
+          "tokens": [
+            "2",
+            "X",
+            "69.50"
+          ],
+          "text": "2 X 69.50"
+        },
+        {
+          "index": 10,
+          "y_center": 596.08,
+          "tokens": [
+            "DAMAK",
+            "BEYAZ",
+            "60",
+            "G",
+            "%1.0",
+            "*139,00"
+          ],
+          "text": "DAMAK BEYAZ 60 G %1.0 *139,00"
+        },
+        {
+          "index": 11,
+          "y_center": 625.33,
+          "tokens": [
+            "3",
+            "X",
+            "26.50"
+          ],
+          "text": "3 X 26.50"
+        },
+        {
+          "index": 12,
+          "y_center": 658.83,
+          "tokens": [
+            "GOFRET47GDIDOMAXI",
+            "t1.0",
+            "*79.50"
+          ],
+          "text": "GOFRET47GDIDOMAXI t1.0 *79.50"
+        },
+        {
+          "index": 13,
+          "y_center": 689.0,
+          "tokens": [
+            "3",
+            "X",
+            "15.00"
+          ],
+          "text": "3 X 15.00"
+        },
+        {
+          "index": 14,
+          "y_center": 719.38,
+          "tokens": [
+            "GUFRET47G",
+            "ÜLKER",
+            "%1.0",
+            "*45.00"
+          ],
+          "text": "GUFRET47G ÜLKER %1.0 *45.00"
+        },
+        {
+          "index": 15,
+          "y_center": 749.93,
+          "tokens": [
+            "BÍ",
+            "LIMONATA",
+            "1",
+            "L",
+            "%10.",
+            "*29",
+            "00"
+          ],
+          "text": "BÍ LIMONATA 1 L %10. *29 00"
+        },
+        {
+          "index": 16,
+          "y_center": 780.9,
+          "tokens": [
+            "CAMLICA",
+            "1,5L",
+            "SADE",
+            "10.",
+            "*55.00"
+          ],
+          "text": "CAMLICA 1,5L SADE 10. *55.00"
+        },
+        {
+          "index": 17,
+          "y_center": 812.13,
+          "tokens": [
+            "ALIŞVERIŞ$",
+            "POŞETİ",
+            "420.",
+            "*1.00"
+          ],
+          "text": "ALIŞVERIŞ$ POŞETİ 420. *1.00"
+        },
+        {
+          "index": 18,
+          "y_center": 842.8,
+          "tokens": [
+            "HISTRAL",
+            "100LÓ",
+            "PÇT",
+            "120.",
+            "*28.00"
+          ],
+          "text": "HISTRAL 100LÓ PÇT 120. *28.00"
+        },
+        {
+          "index": 19,
+          "y_center": 872.63,
+          "tokens": [
+            "FANTA",
+            "2.5L",
+            "10.",
+            "*80.00"
+          ],
+          "text": "FANTA 2.5L 10. *80.00"
+        },
+        {
+          "index": 20,
+          "y_center": 902.83,
+          "tokens": [
+            "ARA",
+            "TOPLAM",
+            "6*456.50"
+          ],
+          "text": "ARA TOPLAM 6*456.50"
+        },
+        {
+          "index": 21,
+          "y_center": 961.93,
+          "tokens": [
+            "HAL",
+            "/HIZME",
+            "T",
+            "TOPLAM",
+            "TUTARI",
+            "*",
+            "434.15"
+          ],
+          "text": "HAL /HIZME T TOPLAM TUTARI * 434.15"
+        },
+        {
+          "index": 22,
+          "y_center": 990.17,
+          "tokens": [
+            "TOPKDV",
+            "*",
+            "22.35"
+          ],
+          "text": "TOPKDV * 22.35"
+        },
+        {
+          "index": 23,
+          "y_center": 1020.5,
+          "tokens": [
+            "ÖDENECEK",
+            "TUTAR",
+            "*456.50"
+          ],
+          "text": "ÖDENECEK TUTAR *456.50"
+        },
+        {
+          "index": 24,
+          "y_center": 1082.0,
+          "tokens": [
+            "KREDI",
+            "KARTI",
+            "*456.50"
+          ],
+          "text": "KREDI KARTI *456.50"
+        },
+        {
+          "index": 25,
+          "y_center": 1115.0,
+          "tokens": [
+            "Gar",
+            "anti",
+            "Peşin",
+            "(1)"
+          ],
+          "text": "Gar anti Peşin (1)"
+        },
+        {
+          "index": 26,
+          "y_center": 1141.33,
+          "tokens": [
+            "Provizyon",
+            "No",
+            "190390"
+          ],
+          "text": "Provizyon No 190390"
+        },
+        {
+          "index": 27,
+          "y_center": 1201.5,
+          "tokens": [
+            "Puan:0.00"
+          ],
+          "text": "Puan:0.00"
+        },
+        {
+          "index": 28,
+          "y_center": 1229.0,
+          "tokens": [
+            "GARANTI",
+            "BANKASI"
+          ],
+          "text": "GARANTI BANKASI"
+        },
+        {
+          "index": 29,
+          "y_center": 1257.1,
+          "tokens": [
+            "I:",
+            "3819311",
+            "T:01727743",
+            "54070942*A*",
+            "*6042"
+          ],
+          "text": "I: 3819311 T:01727743 54070942*A* *6042"
+        },
+        {
+          "index": 30,
+          "y_center": 1286.38,
+          "tokens": [
+            "11.04.2026",
+            "19:37",
+            "B:6971",
+            "S.14164"
+          ],
+          "text": "11.04.2026 19:37 B:6971 S.14164"
+        },
+        {
+          "index": 31,
+          "y_center": 1316.5,
+          "tokens": [
+            "Rrn/Bef.No:610172148918",
+            "Ref",
+            "No:"
+          ],
+          "text": "Rrn/Bef.No:610172148918 Ref No:"
+        },
+        {
+          "index": 32,
+          "y_center": 1401.58,
+          "tokens": [
+            "KDV",
+            "Orani",
+            "KDV",
+            "Dahi1",
+            "Tutar",
+            "KDV"
+          ],
+          "text": "KDV Orani KDV Dahi1 Tutar KDV"
+        },
+        {
+          "index": 33,
+          "y_center": 1429.83,
+          "tokens": [
+            "%1.00",
+            "263,50",
+            "12.61"
+          ],
+          "text": "%1.00 263,50 12.61"
+        },
+        {
+          "index": 34,
+          "y_center": 1472.42,
+          "tokens": [
+            "%10.00",
+            "420.00",
+            "*29.00",
+            "164.00",
+            "*4.83",
+            "14.91"
+          ],
+          "text": "%10.00 420.00 *29.00 164.00 *4.83 14.91"
+        },
+        {
+          "index": 35,
+          "y_center": 1537.63,
+          "tokens": [
+            "KASIYER",
+            "ISIMmm",
+            "F****",
+            "****"
+          ],
+          "text": "KASIYER ISIMmm F**** ****"
+        },
+        {
+          "index": 36,
+          "y_center": 1585.0,
+          "tokens": [
+            "79040021104606030087"
+          ],
+          "text": "79040021104606030087"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "A101YENIMAGAZACILIKA.Ș.M.Kodu:7904",
+        "firmaAdresi": "Gesi Fatih Mah, Gün Sazak Cad. , Eleganc",
+        "vergiDairesi": "",
+        "vergiTcNo": "9480423762",
+        "belgeTuru": "Fatura",
+        "fisNo": "",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "5283d610-3238-4689-b386-3d1618137397",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "11.04.2026",
+        "saat": "19:34",
+        "kdvDetay": [
+          {
+            "oran": "%1",
+            "matrah": "",
+            "tutar": "139.00"
+          },
+          {
+            "oran": "%10",
+            "matrah": "",
+            "tutar": "29.00"
+          }
+        ],
+        "toplamKdv": "22.35",
+        "kdvHaricToplam": "",
+        "araToplam": "456.50",
+        "toplamTutar": "434.15",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": "1,5 L",
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": null,
+        "kategori": "Market",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_a881bce434c1",
+      "element_count": 112,
+      "row_count": 36,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 59.75,
+          "tokens": [
+            "oluA",
+            "nslsmsbie"
+          ],
+          "text": "oluA nslsmsbie"
+        },
+        {
+          "index": 1,
+          "y_center": 116.5,
+          "tokens": [
+            ":"
+          ],
+          "text": ":"
+        },
+        {
+          "index": 2,
+          "y_center": 178.33,
+          "tokens": [
+            "ÇELIK",
+            "TICARET",
+            "neg"
+          ],
+          "text": "ÇELIK TICARET neg"
+        },
+        {
+          "index": 3,
+          "y_center": 231.5,
+          "tokens": [
+            "5eTsqns0",
+            "sULEYMAN",
+            "ÇELİK"
+          ],
+          "text": "5eTsqns0 sULEYMAN ÇELİK"
+        },
+        {
+          "index": 4,
+          "y_center": 276.61,
+          "tokens": [
+            "ARGINC",
+            "IK",
+            "MH,",
+            "Y,",
+            "SUL",
+            "TAN",
+            "SEL",
+            "İM",
+            "CD,"
+          ],
+          "text": "ARGINC IK MH, Y, SUL TAN SEL İM CD,"
+        },
+        {
+          "index": 5,
+          "y_center": 325.83,
+          "tokens": [
+            "NO:109",
+            "KOCAS",
+            "İNAN/KAYSERİ"
+          ],
+          "text": "NO:109 KOCAS İNAN/KAYSERİ"
+        },
+        {
+          "index": 6,
+          "y_center": 375.5,
+          "tokens": [
+            "TEL:",
+            "0352",
+            "245",
+            "24",
+            "94"
+          ],
+          "text": "TEL: 0352 245 24 94"
+        },
+        {
+          "index": 7,
+          "y_center": 417.5,
+          "tokens": [
+            "GE",
+            "VHER",
+            "NES",
+            "İBE",
+            "VERGİ",
+            "DA",
+            "İRESİ"
+          ],
+          "text": "GE VHER NES İBE VERGİ DA İRESİ"
+        },
+        {
+          "index": 8,
+          "y_center": 463.0,
+          "tokens": [
+            "2400326877"
+          ],
+          "text": "2400326877"
+        },
+        {
+          "index": 9,
+          "y_center": 521.67,
+          "tokens": [
+            "16-04-2026",
+            "FİŞ",
+            "NO:0002"
+          ],
+          "text": "16-04-2026 FİŞ NO:0002"
+        },
+        {
+          "index": 10,
+          "y_center": 567.0,
+          "tokens": [
+            "SAAT",
+            "08:29"
+          ],
+          "text": "SAAT 08:29"
+        },
+        {
+          "index": 11,
+          "y_center": 623.83,
+          "tokens": [
+            "UN",
+            "701",
+            "*900,00"
+          ],
+          "text": "UN 701 *900,00"
+        },
+        {
+          "index": 12,
+          "y_center": 667.75,
+          "tokens": [
+            "ARATOPLAM",
+            "*900,00"
+          ],
+          "text": "ARATOPLAM *900,00"
+        },
+        {
+          "index": 13,
+          "y_center": 723.0,
+          "tokens": [
+            "KDY",
+            "*8,91"
+          ],
+          "text": "KDY *8,91"
+        },
+        {
+          "index": 14,
+          "y_center": 763.0,
+          "tokens": [
+            "TOP",
+            "*900,00"
+          ],
+          "text": "TOP *900,00"
+        },
+        {
+          "index": 15,
+          "y_center": 809.0,
+          "tokens": [
+            "EFT-POS",
+            "*900,00"
+          ],
+          "text": "EFT-POS *900,00"
+        },
+        {
+          "index": 16,
+          "y_center": 881.4,
+          "tokens": [
+            "KUVEYT",
+            "TURK",
+            "KATILIN",
+            "BANKASI",
+            "A.S."
+          ],
+          "text": "KUVEYT TURK KATILIN BANKASI A.S."
+        },
+        {
+          "index": 17,
+          "y_center": 904.5,
+          "tokens": [
+            "19YERI:",
+            "015000000001443",
+            "POS:PS438054"
+          ],
+          "text": "19YERI: 015000000001443 POS:PS438054"
+        },
+        {
+          "index": 18,
+          "y_center": 928.5,
+          "tokens": [
+            "BATCH",
+            "NO:000683",
+            "L11"
+          ],
+          "text": "BATCH NO:000683 L11"
+        },
+        {
+          "index": 19,
+          "y_center": 952.67,
+          "tokens": [
+            "1ŞLEM",
+            "NO:000001",
+            "STAN:011271"
+          ],
+          "text": "1ŞLEM NO:000001 STAN:011271"
+        },
+        {
+          "index": 20,
+          "y_center": 978.17,
+          "tokens": [
+            "SN:",
+            "FT40017687",
+            "HGN/T3Y"
+          ],
+          "text": "SN: FT40017687 HGN/T3Y"
+        },
+        {
+          "index": 21,
+          "y_center": 1026.0,
+          "tokens": [
+            "SATIS"
+          ],
+          "text": "SATIS"
+        },
+        {
+          "index": 22,
+          "y_center": 1067.88,
+          "tokens": [
+            "**",
+            "**",
+            "*#",
+            "8797"
+          ],
+          "text": "** ** *# 8797"
+        },
+        {
+          "index": 23,
+          "y_center": 1092.67,
+          "tokens": [
+            "1ŞLEM",
+            "TUT",
+            "ARI"
+          ],
+          "text": "1ŞLEM TUT ARI"
+        },
+        {
+          "index": 24,
+          "y_center": 1136.33,
+          "tokens": [
+            "900,",
+            "O0",
+            "TL"
+          ],
+          "text": "900, O0 TL"
+        },
+        {
+          "index": 25,
+          "y_center": 1184.8,
+          "tokens": [
+            "ONAY",
+            "KODU:",
+            "294353",
+            "REFERANS:610650106905",
+            "RRN:610650106905"
+          ],
+          "text": "ONAY KODU: 294353 REFERANS:610650106905 RRN:610650106905"
+        },
+        {
+          "index": 26,
+          "y_center": 1206.5,
+          "tokens": [
+            "BANKA"
+          ],
+          "text": "BANKA"
+        },
+        {
+          "index": 27,
+          "y_center": 1230.17,
+          "tokens": [
+            "KREDI",
+            "KARTI",
+            "AC:691787FH832823FE"
+          ],
+          "text": "KREDI KARTI AC:691787FH832823FE"
+        },
+        {
+          "index": 28,
+          "y_center": 1265.38,
+          "tokens": [
+            "HiD:A0000006723010",
+            "1ŞLEM",
+            "TEHASSIZ",
+            "YAPILMIŞTIR"
+          ],
+          "text": "HiD:A0000006723010 1ŞLEM TEHASSIZ YAPILMIŞTIR"
+        },
+        {
+          "index": 29,
+          "y_center": 1290.25,
+          "tokens": [
+            "ACQUIRER",
+            "1D:0205"
+          ],
+          "text": "ACQUIRER 1D:0205"
+        },
+        {
+          "index": 30,
+          "y_center": 1313.17,
+          "tokens": [
+            "IUTHR",
+            "KARŞILIGI",
+            "MAL",
+            "VEYA",
+            "HIZHET",
+            "ALDIn"
+          ],
+          "text": "IUTHR KARŞILIGI MAL VEYA HIZHET ALDIn"
+        },
+        {
+          "index": 31,
+          "y_center": 1358.67,
+          "tokens": [
+            "BU",
+            "BELGEYI",
+            "SAKLAYINIZ"
+          ],
+          "text": "BU BELGEYI SAKLAYINIZ"
+        },
+        {
+          "index": 32,
+          "y_center": 1380.75,
+          "tokens": [
+            "HUSTERI",
+            "NüSHASI"
+          ],
+          "text": "HUSTERI NüSHASI"
+        },
+        {
+          "index": 33,
+          "y_center": 1448.5,
+          "tokens": [
+            "MuvsvnURK"
+          ],
+          "text": "MuvsvnURK"
+        },
+        {
+          "index": 34,
+          "y_center": 1542.08,
+          "tokens": [
+            "EKU",
+            "NO:",
+            "0001",
+            "Z",
+            "NO:",
+            "0703"
+          ],
+          "text": "EKU NO: 0001 Z NO: 0703"
+        },
+        {
+          "index": 35,
+          "y_center": 1590.5,
+          "tokens": [
+            "M"
+          ],
+          "text": "M"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "ÇELIKTICARETneg",
+        "firmaAdresi": "ARGINC IK MH, Y, SUL TAN SEL İM CD,",
+        "vergiDairesi": "",
+        "vergiTcNo": "2400326877",
+        "belgeTuru": "ÖKC Fişi",
+        "fisNo": "2",
+        "seriNo": "",
+        "zNo": "0703",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "16.04.2026",
+        "saat": "08:29",
+        "kdvDetay": [],
+        "toplamKdv": "8.91",
+        "kdvHaricToplam": "",
+        "araToplam": "900.00",
+        "toplamTutar": "900.00",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": null,
+        "kategori": "Diğer",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_a860a0ce2866",
+      "element_count": 91,
+      "row_count": 29,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 305.0,
+          "tokens": [
+            "EBRU",
+            "GIDA"
+          ],
+          "text": "EBRU GIDA"
+        },
+        {
+          "index": 1,
+          "y_center": 340.5,
+          "tokens": [
+            "ÇIGDEM",
+            "OKUR"
+          ],
+          "text": "ÇIGDEM OKUR"
+        },
+        {
+          "index": 2,
+          "y_center": 371.5,
+          "tokens": [
+            "Sahabi",
+            "ye",
+            "mh",
+            "Ahmet",
+            "paşa",
+            "Cd"
+          ],
+          "text": "Sahabi ye mh Ahmet paşa Cd"
+        },
+        {
+          "index": 3,
+          "y_center": 405.5,
+          "tokens": [
+            "NO",
+            "18/C"
+          ],
+          "text": "NO 18/C"
+        },
+        {
+          "index": 4,
+          "y_center": 438.0,
+          "tokens": [
+            "Kocas",
+            "inan/",
+            "KAVSERI"
+          ],
+          "text": "Kocas inan/ KAVSERI"
+        },
+        {
+          "index": 5,
+          "y_center": 470.5,
+          "tokens": [
+            "G",
+            "NESIBE",
+            "VD.",
+            "52906239916"
+          ],
+          "text": "G NESIBE VD. 52906239916"
+        },
+        {
+          "index": 6,
+          "y_center": 505.5,
+          "tokens": [
+            "TEL",
+            "0533",
+            "167",
+            "6486"
+          ],
+          "text": "TEL 0533 167 6486"
+        },
+        {
+          "index": 7,
+          "y_center": 551.38,
+          "tokens": [
+            "08-04-2026",
+            "FIŞ",
+            "NO",
+            "5"
+          ],
+          "text": "08-04-2026 FIŞ NO 5"
+        },
+        {
+          "index": 8,
+          "y_center": 586.83,
+          "tokens": [
+            "SAAT",
+            "10",
+            "22"
+          ],
+          "text": "SAAT 10 22"
+        },
+        {
+          "index": 9,
+          "y_center": 636.8,
+          "tokens": [
+            "TEMEL",
+            "GIDA",
+            "71",
+            "*535,",
+            "00"
+          ],
+          "text": "TEMEL GIDA 71 *535, 00"
+        },
+        {
+          "index": 10,
+          "y_center": 690.5,
+          "tokens": [
+            "TOPKDV",
+            "*5,30"
+          ],
+          "text": "TOPKDV *5,30"
+        },
+        {
+          "index": 11,
+          "y_center": 736.25,
+          "tokens": [
+            "TOPLAM",
+            "*535,00"
+          ],
+          "text": "TOPLAM *535,00"
+        },
+        {
+          "index": 12,
+          "y_center": 791.5,
+          "tokens": [
+            "KREDI",
+            "KARTI",
+            "535,",
+            "00"
+          ],
+          "text": "KREDI KARTI 535, 00"
+        },
+        {
+          "index": 13,
+          "y_center": 877.67,
+          "tokens": [
+            "1ŞYERI",
+            "NO:",
+            "029300000001231",
+            "POS",
+            "NO:",
+            "PS535402"
+          ],
+          "text": "1ŞYERI NO: 029300000001231 POS NO: PS535402"
+        },
+        {
+          "index": 14,
+          "y_center": 908.6,
+          "tokens": [
+            "İSLEM",
+            "NO:AK0005",
+            "BATCH",
+            "NO:0088",
+            "10:22"
+          ],
+          "text": "İSLEM NO:AK0005 BATCH NO:0088 10:22"
+        },
+        {
+          "index": 15,
+          "y_center": 940.0,
+          "tokens": [
+            "SATIŞ"
+          ],
+          "text": "SATIŞ"
+        },
+        {
+          "index": 16,
+          "y_center": 975.0,
+          "tokens": [
+            "K***",
+            "*****",
+            "****",
+            "7077"
+          ],
+          "text": "K*** ***** **** 7077"
+        },
+        {
+          "index": 17,
+          "y_center": 1005.0,
+          "tokens": [
+            "TUTAR"
+          ],
+          "text": "TUTAR"
+        },
+        {
+          "index": 18,
+          "y_center": 1038.0,
+          "tokens": [
+            "535,00",
+            "TL"
+          ],
+          "text": "535,00 TL"
+        },
+        {
+          "index": 19,
+          "y_center": 1067.0,
+          "tokens": [
+            "VAKIFBANK",
+            "MC"
+          ],
+          "text": "VAKIFBANK MC"
+        },
+        {
+          "index": 20,
+          "y_center": 1098.0,
+          "tokens": [
+            "AID",
+            ":",
+            "A0000000041010"
+          ],
+          "text": "AID : A0000000041010"
+        },
+        {
+          "index": 21,
+          "y_center": 1129.5,
+          "tokens": [
+            "oNAY",
+            "KODU:055059"
+          ],
+          "text": "oNAY KODU:055059"
+        },
+        {
+          "index": 22,
+          "y_center": 1164.0,
+          "tokens": [
+            "TUTAR",
+            "KARŞIL",
+            "IGI",
+            "NAL",
+            "VEYA",
+            "HIZNETİ",
+            "ALDIN"
+          ],
+          "text": "TUTAR KARŞIL IGI NAL VEYA HIZNETİ ALDIN"
+        },
+        {
+          "index": 23,
+          "y_center": 1195.0,
+          "tokens": [
+            "K**TEMASSIZ",
+            "iŞLEM***"
+          ],
+          "text": "K**TEMASSIZ iŞLEM***"
+        },
+        {
+          "index": 24,
+          "y_center": 1332.0,
+          "tokens": [
+            "KuUEYTTÜRK"
+          ],
+          "text": "KuUEYTTÜRK"
+        },
+        {
+          "index": 25,
+          "y_center": 1364.0,
+          "tokens": [
+            "MUŞTERI",
+            "NOSHASI"
+          ],
+          "text": "MUŞTERI NOSHASI"
+        },
+        {
+          "index": 26,
+          "y_center": 1395.5,
+          "tokens": [
+            "H2E01013"
+          ],
+          "text": "H2E01013"
+        },
+        {
+          "index": 27,
+          "y_center": 1505.9,
+          "tokens": [
+            "EKÜ",
+            "NO",
+            "1",
+            "Z",
+            "NO"
+          ],
+          "text": "EKÜ NO 1 Z NO"
+        },
+        {
+          "index": 28,
+          "y_center": 1528.0,
+          "tokens": [
+            "MF",
+            "AT",
+            "0000547336",
+            "97"
+          ],
+          "text": "MF AT 0000547336 97"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "EBRUGIDA",
+        "firmaAdresi": "Sahabi ye mh Ahmet paşa Cd",
+        "vergiDairesi": "",
+        "vergiTcNo": "52906239916",
+        "belgeTuru": "ÖKC Fişi",
+        "fisNo": "",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "08.04.2026",
+        "saat": "10:22",
+        "kdvDetay": [],
+        "toplamKdv": "5.30",
+        "kdvHaricToplam": "",
+        "araToplam": "",
+        "toplamTutar": "535.00",
+        "odemeYontemi": "Temassız",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": "05331676486",
+        "kategori": "Diğer",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_fd0668088e7a",
+      "element_count": 94,
+      "row_count": 25,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 279.25,
+          "tokens": [
+            "dsM",
+            "iss0.A",
+            ":891bA",
+            "seioM"
+          ],
+          "text": "dsM iss0.A :891bA seioM"
+        },
+        {
+          "index": 1,
+          "y_center": 325.25,
+          "tokens": [
+            "GxaMD",
+            "ET:oM",
+            ".bsO",
+            "bledud3"
+          ],
+          "text": "GxaMD ET:oM .bsO bledud3"
+        },
+        {
+          "index": 2,
+          "y_center": 382.5,
+          "tokens": [
+            "luE-Arsiv",
+            "Faturae"
+          ],
+          "text": "luE-Arsiv Faturae"
+        },
+        {
+          "index": 3,
+          "y_center": 427.0,
+          "tokens": [
+            "B1W",
+            "BIRLESIK",
+            "MAGAZALAR",
+            "A.S.M"
+          ],
+          "text": "B1W BIRLESIK MAGAZALAR A.S.M"
+        },
+        {
+          "index": 4,
+          "y_center": 468.57,
+          "tokens": [
+            "TlOAN",
+            "GESI",
+            "FATIH",
+            "MAM.DINÇER",
+            "SK",
+            "NO:2",
+            "D"
+          ],
+          "text": "TlOAN GESI FATIH MAM.DINÇER SK NO:2 D"
+        },
+        {
+          "index": 5,
+          "y_center": 512.3,
+          "tokens": [
+            "U",
+            "MEL",
+            "IKGAZI",
+            "/",
+            "KAVSERI"
+          ],
+          "text": "U MEL IKGAZI / KAVSERI"
+        },
+        {
+          "index": 6,
+          "y_center": 548.5,
+          "tokens": [
+            "Buyiük",
+            "Mükel",
+            "lefler",
+            "VDN",
+            "1750051846"
+          ],
+          "text": "Buyiük Mükel lefler VDN 1750051846"
+        },
+        {
+          "index": 7,
+          "y_center": 586.0,
+          "tokens": [
+            "FATURA",
+            "NO:T042026018031073"
+          ],
+          "text": "FATURA NO:T042026018031073"
+        },
+        {
+          "index": 8,
+          "y_center": 622.75,
+          "tokens": [
+            "03.94.2026",
+            "18:53",
+            "Sira",
+            "No",
+            ":",
+            "258"
+          ],
+          "text": "03.94.2026 18:53 Sira No : 258"
+        },
+        {
+          "index": 9,
+          "y_center": 661.75,
+          "tokens": [
+            "ETTNI",
+            "bb9138e-0dd1-4f12-b3e5-c51lbe9eba2c"
+          ],
+          "text": "ETTNI bb9138e-0dd1-4f12-b3e5-c51lbe9eba2c"
+        },
+        {
+          "index": 10,
+          "y_center": 751.0,
+          "tokens": [
+            "14499010304607940258"
+          ],
+          "text": "14499010304607940258"
+        },
+        {
+          "index": 11,
+          "y_center": 789.0,
+          "tokens": [
+            "TCKN/VKN:11i111111-NIHAI",
+            "TüKETICI"
+          ],
+          "text": "TCKN/VKN:11i111111-NIHAI TüKETICI"
+        },
+        {
+          "index": 12,
+          "y_center": 828.5,
+          "tokens": [
+            "2",
+            "ad",
+            "X",
+            "69.00"
+          ],
+          "text": "2 ad X 69.00"
+        },
+        {
+          "index": 13,
+          "y_center": 864.0,
+          "tokens": [
+            "MRNTAR",
+            "400G",
+            "*138.00"
+          ],
+          "text": "MRNTAR 400G *138.00"
+        },
+        {
+          "index": 14,
+          "y_center": 898.86,
+          "tokens": [
+            "SIYAH",
+            "ÇAY",
+            "1",
+            "KG",
+            "OFÇAY",
+            "%1.",
+            "*285.00"
+          ],
+          "text": "SIYAH ÇAY 1 KG OFÇAY %1. *285.00"
+        },
+        {
+          "index": 15,
+          "y_center": 934.67,
+          "tokens": [
+            "TOPLAM",
+            "KOV",
+            "*4.19"
+          ],
+          "text": "TOPLAM KOV *4.19"
+        },
+        {
+          "index": 16,
+          "y_center": 970.1,
+          "tokens": [
+            "0denecek",
+            "KDV",
+            "Dahil",
+            "Tutar",
+            "x423.00"
+          ],
+          "text": "0denecek KDV Dahil Tutar x423.00"
+        },
+        {
+          "index": 17,
+          "y_center": 1006.4,
+          "tokens": [
+            "Banka",
+            "Kredi",
+            "Kartı",
+            "(1)",
+            "*423.00"
+          ],
+          "text": "Banka Kredi Kartı (1) *423.00"
+        },
+        {
+          "index": 18,
+          "y_center": 1043.5,
+          "tokens": [
+            "VAPI",
+            "KREDi"
+          ],
+          "text": "VAPI KREDi"
+        },
+        {
+          "index": 19,
+          "y_center": 1075.33,
+          "tokens": [
+            "I:2602213861",
+            "T:00A603FD",
+            "521807******070"
+          ],
+          "text": "I:2602213861 T:00A603FD 521807******070"
+        },
+        {
+          "index": 20,
+          "y_center": 1111.88,
+          "tokens": [
+            "03.04.2026",
+            "18:54",
+            "B:83",
+            "S:79"
+          ],
+          "text": "03.04.2026 18:54 B:83 S:79"
+        },
+        {
+          "index": 21,
+          "y_center": 1146.75,
+          "tokens": [
+            "Onay",
+            "No:338411",
+            "Ref",
+            "No:3494665710"
+          ],
+          "text": "Onay No:338411 Ref No:3494665710"
+        },
+        {
+          "index": 22,
+          "y_center": 1178.8,
+          "tokens": [
+            "KOV",
+            "MATRAHKDV",
+            "TUTAR",
+            "KOV",
+            "DAHIL"
+          ],
+          "text": "KOV MATRAHKDV TUTAR KOV DAHIL"
+        },
+        {
+          "index": 23,
+          "y_center": 1215.63,
+          "tokens": [
+            "Z1.",
+            "418.81",
+            "ho*4.19",
+            "*423.00"
+          ],
+          "text": "Z1. 418.81 ho*4.19 *423.00"
+        },
+        {
+          "index": 24,
+          "y_center": 1426.0,
+          "tokens": [
+            "siniesilde"
+          ],
+          "text": "siniesilde"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "BIWBIRLESIKMAGAZALARA.S.M",
+        "firmaAdresi": "TlOAN GESI FATIH MAM.DINÇER SK NO:2 D",
+        "vergiDairesi": "",
+        "vergiTcNo": "1750051846",
+        "belgeTuru": "e-Arşiv Fatura",
+        "fisNo": "T042026018031073",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "03.04.2026",
+        "saat": "18:53",
+        "kdvDetay": [
+          {
+            "oran": "%1",
+            "matrah": "",
+            "tutar": "285.00"
+          }
+        ],
+        "toplamKdv": "4.19",
+        "kdvHaricToplam": "423.00",
+        "araToplam": "",
+        "toplamTutar": "423.00",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": null,
+        "kategori": "Yeme-İçme",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_a3e7a2c3cbec",
+      "element_count": 272,
+      "row_count": 74,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 99.0,
+          "tokens": [
+            "MIGALL",
+            "GROSSMARKET",
+            "FEVZI"
+          ],
+          "text": "MIGALL GROSSMARKET FEVZI"
+        },
+        {
+          "index": 1,
+          "y_center": 111.0,
+          "tokens": [
+            "AS"
+          ],
+          "text": "AS"
+        },
+        {
+          "index": 2,
+          "y_center": 119.35,
+          "tokens": [
+            "ANADOL",
+            "U",
+            "ÇARSI",
+            "MAĞ",
+            "İŞI.",
+            "TIC.",
+            "VE",
+            "SANA",
+            "NO",
+            "228"
+          ],
+          "text": "ANADOL U ÇARSI MAĞ İŞI. TIC. VE SANA NO 228"
+        },
+        {
+          "index": 3,
+          "y_center": 135.0,
+          "tokens": [
+            "YILDIRIM",
+            "BEYAZ11",
+            "MAH",
+            "SiVAS",
+            "DLV."
+          ],
+          "text": "YILDIRIM BEYAZ11 MAH SiVAS DLV."
+        },
+        {
+          "index": 4,
+          "y_center": 154.13,
+          "tokens": [
+            "MELIKGAZI/",
+            "KAYSERI/",
+            "0091040903",
+            "T0rkiye"
+          ],
+          "text": "MELIKGAZI/ KAYSERI/ 0091040903 T0rkiye"
+        },
+        {
+          "index": 5,
+          "y_center": 169.88,
+          "tokens": [
+            "Erclyes",
+            "Vergi",
+            "Dalest",
+            "VKN"
+          ],
+          "text": "Erclyes Vergi Dalest VKN"
+        },
+        {
+          "index": 6,
+          "y_center": 186.5,
+          "tokens": [
+            "SAR"
+          ],
+          "text": "SAR"
+        },
+        {
+          "index": 7,
+          "y_center": 205.5,
+          "tokens": [
+            "FiS"
+          ],
+          "text": "FiS"
+        },
+        {
+          "index": 8,
+          "y_center": 218.25,
+          "tokens": [
+            "E-ARŞİV",
+            "FATURA"
+          ],
+          "text": "E-ARŞİV FATURA"
+        },
+        {
+          "index": 9,
+          "y_center": 236.5,
+          "tokens": [
+            "GMU-507",
+            "Tetligi'ne",
+            "uyqundur"
+          ],
+          "text": "GMU-507 Tetligi'ne uyqundur"
+        },
+        {
+          "index": 10,
+          "y_center": 267.0,
+          "tokens": [
+            "19.042028",
+            "15:42"
+          ],
+          "text": "19.042028 15:42"
+        },
+        {
+          "index": 11,
+          "y_center": 280.25,
+          "tokens": [
+            "FX8JAUoyAc",
+            "TUR"
+          ],
+          "text": "FX8JAUoyAc TUR"
+        },
+        {
+          "index": 12,
+          "y_center": 294.75,
+          "tokens": [
+            "Tarlh",
+            "Saat",
+            "NJ32026000014862",
+            "MIS"
+          ],
+          "text": "Tarlh Saat NJ32026000014862 MIS"
+        },
+        {
+          "index": 13,
+          "y_center": 309.0,
+          "tokens": [
+            "Satis",
+            "NO",
+            "*4*111"
+          ],
+          "text": "Satis NO *4*111"
+        },
+        {
+          "index": 14,
+          "y_center": 329.5,
+          "tokens": [
+            "Beige",
+            "NO",
+            "VKN/TCKN",
+            "FAT"
+          ],
+          "text": "Beige NO VKN/TCKN FAT"
+        },
+        {
+          "index": 15,
+          "y_center": 342.5,
+          "tokens": [
+            "Muşte",
+            "65,31"
+          ],
+          "text": "Muşte 65,31"
+        },
+        {
+          "index": 16,
+          "y_center": 351.0,
+          "tokens": [
+            "2901288"
+          ],
+          "text": "2901288"
+        },
+        {
+          "index": 17,
+          "y_center": 358.56,
+          "tokens": [
+            "48",
+            "Nu24",
+            "90",
+            "TLK",
+            "MALIK",
+            "KG",
+            "401",
+            "TC"
+          ],
+          "text": "48 Nu24 90 TLK MALIK KG 401 TC"
+        },
+        {
+          "index": 18,
+          "y_center": 378.0,
+          "tokens": [
+            "1ATATES",
+            "KIZART",
+            "2900473",
+            "g6,/6"
+          ],
+          "text": "1ATATES KIZART 2900473 g6,/6"
+        },
+        {
+          "index": 19,
+          "y_center": 392.42,
+          "tokens": [
+            "2201ho",
+            "c4350",
+            "L",
+            "Kio",
+            "0473",
+            "%01"
+          ],
+          "text": "2201ho c4350 L Kio 0473 %01"
+        },
+        {
+          "index": 20,
+          "y_center": 406.2,
+          "tokens": [
+            "SALATALIK",
+            "SIL",
+            "OR",
+            "KG",
+            "Ad"
+          ],
+          "text": "SALATALIK SIL OR KG Ad"
+        },
+        {
+          "index": 21,
+          "y_center": 425.1,
+          "tokens": [
+            "12090",
+            "TLAde!",
+            "596292000433",
+            "%01",
+            "129,90"
+          ],
+          "text": "12090 TLAde! 596292000433 %01 129,90"
+        },
+        {
+          "index": 22,
+          "y_center": 440.2,
+          "tokens": [
+            "UNTADLAVAS",
+            "Ate",
+            "EKME",
+            "GI",
+            "560"
+          ],
+          "text": "UNTADLAVAS Ate EKME GI 560"
+        },
+        {
+          "index": 23,
+          "y_center": 452.75,
+          "tokens": [
+            "1.00",
+            "Ko"
+          ],
+          "text": "1.00 Ko"
+        },
+        {
+          "index": 24,
+          "y_center": 465.25,
+          "tokens": [
+            "1",
+            "Aet",
+            "100",
+            "TL/Aitet",
+            "B82257797059",
+            "3620"
+          ],
+          "text": "1 Aet 100 TL/Aitet B82257797059 3620"
+        },
+        {
+          "index": 25,
+          "y_center": 482.1,
+          "tokens": [
+            "MIGAL",
+            "L",
+            "UCRETI",
+            "POSET",
+            "3"
+          ],
+          "text": "MIGAL L UCRETI POSET 3"
+        },
+        {
+          "index": 26,
+          "y_center": 493.5,
+          "tokens": [
+            "44,90"
+          ],
+          "text": "44,90"
+        },
+        {
+          "index": 27,
+          "y_center": 504.56,
+          "tokens": [
+            "1Adet",
+            "x44",
+            "90",
+            "TUAdet",
+            "KREMALI",
+            "809076810899",
+            "BIS",
+            "%01",
+            "AL"
+          ],
+          "text": "1Adet x44 90 TUAdet KREMALI 809076810899 BIS %01 AL"
+        },
+        {
+          "index": 28,
+          "y_center": 526.33,
+          "tokens": [
+            "ULKER4LÜ",
+            "3800D02240223",
+            "129,00"
+          ],
+          "text": "ULKER4LÜ 3800D02240223 129,00"
+        },
+        {
+          "index": 29,
+          "y_center": 540.8,
+          "tokens": [
+            "1Adet",
+            "12900",
+            "TLLAdet",
+            "CEKIRDEK",
+            "%01"
+          ],
+          "text": "1Adet 12900 TLLAdet CEKIRDEK %01"
+        },
+        {
+          "index": 30,
+          "y_center": 552.5,
+          "tokens": [
+            "SAHL",
+            "AN",
+            "TUZL",
+            "U"
+          ],
+          "text": "SAHL AN TUZL U"
+        },
+        {
+          "index": 31,
+          "y_center": 571.08,
+          "tokens": [
+            "59",
+            "95",
+            "TLIAtet",
+            "88990736303o0",
+            "%10",
+            "59,95"
+          ],
+          "text": "59 95 TLIAtet 88990736303o0 %10 59,95"
+        },
+        {
+          "index": 32,
+          "y_center": 586.63,
+          "tokens": [
+            "ERKEK",
+            "BAMBU",
+            "BABE",
+            "T"
+          ],
+          "text": "ERKEK BAMBU BABE T"
+        },
+        {
+          "index": 33,
+          "y_center": 608.57,
+          "tokens": [
+            "2",
+            "Adet",
+            "2830",
+            "TLAdet",
+            "2809022",
+            "601",
+            "56,00"
+          ],
+          "text": "2 Adet 2830 TLAdet 2809022 601 56,00"
+        },
+        {
+          "index": 34,
+          "y_center": 623.13,
+          "tokens": [
+            "PAPYGN",
+            "PIDE",
+            "ÇIFTE",
+            "9022"
+          ],
+          "text": "PAPYGN PIDE ÇIFTE 9022"
+        },
+        {
+          "index": 35,
+          "y_center": 644.36,
+          "tokens": [
+            "Adet",
+            "T4",
+            "EK",
+            "S021",
+            "2809D21",
+            "%01",
+            "28,00"
+          ],
+          "text": "Adet T4 EK S021 2809D21 %01 28,00"
+        },
+        {
+          "index": 36,
+          "y_center": 659.75,
+          "tokens": [
+            "PAPYON",
+            "PIDE",
+            "11.28",
+            "TL"
+          ],
+          "text": "PAPYON PIDE 11.28 TL"
+        },
+        {
+          "index": 37,
+          "y_center": 679.0,
+          "tokens": [
+            "TOPLAM",
+            "KDV",
+            "630,82",
+            "TL"
+          ],
+          "text": "TOPLAM KDV 630,82 TL"
+        },
+        {
+          "index": 38,
+          "y_center": 700.17,
+          "tokens": [
+            "TOPLAM",
+            "KDV",
+            "1oplan"
+          ],
+          "text": "TOPLAM KDV 1oplan"
+        },
+        {
+          "index": 39,
+          "y_center": 714.6,
+          "tokens": [
+            "KDV",
+            "Oran",
+            "5,64",
+            "569,87",
+            "TL"
+          ],
+          "text": "KDV Oran 5,64 569,87 TL"
+        },
+        {
+          "index": 40,
+          "y_center": 729.25,
+          "tokens": [
+            "%01",
+            "0,17",
+            "1,00",
+            "TL"
+          ],
+          "text": "%01 0,17 1,00 TL"
+        },
+        {
+          "index": 41,
+          "y_center": 745.13,
+          "tokens": [
+            "%20",
+            "5,45",
+            "59,95",
+            "TL"
+          ],
+          "text": "%20 5,45 59,95 TL"
+        },
+        {
+          "index": 42,
+          "y_center": 760.5,
+          "tokens": [
+            "X10",
+            "630",
+            "82",
+            "TL"
+          ],
+          "text": "X10 630 82 TL"
+        },
+        {
+          "index": 43,
+          "y_center": 778.25,
+          "tokens": [
+            "BRM",
+            "leciPOS"
+          ],
+          "text": "BRM leciPOS"
+        },
+        {
+          "index": 44,
+          "y_center": 800.0,
+          "tokens": [
+            "ÖDEMELER"
+          ],
+          "text": "ÖDEMELER"
+        },
+        {
+          "index": 45,
+          "y_center": 822.0,
+          "tokens": [
+            "Kart/Karekod",
+            "Odemesl"
+          ],
+          "text": "Kart/Karekod Odemesl"
+        },
+        {
+          "index": 46,
+          "y_center": 843.25,
+          "tokens": [
+            "TiŞ",
+            "BANKASI",
+            "A.Ş.",
+            "15:41"
+          ],
+          "text": "TiŞ BANKASI A.Ş. 15:41"
+        },
+        {
+          "index": 47,
+          "y_center": 850.5,
+          "tokens": [
+            "SAAT:"
+          ],
+          "text": "SAAT:"
+        },
+        {
+          "index": 48,
+          "y_center": 867.13,
+          "tokens": [
+            "TARiH",
+            "19.04.2026",
+            "POS:",
+            "S1ABC105"
+          ],
+          "text": "TARiH 19.04.2026 POS: S1ABC105"
+        },
+        {
+          "index": 49,
+          "y_center": 878.0,
+          "tokens": [
+            "B953607",
+            "19"
+          ],
+          "text": "B953607 19"
+        },
+        {
+          "index": 50,
+          "y_center": 890.25,
+          "tokens": [
+            "isYER",
+            "O0000o02/8OLOM",
+            "1",
+            "11"
+          ],
+          "text": "isYER O0000o02/8OLOM 1 11"
+        },
+        {
+          "index": 51,
+          "y_center": 898.75,
+          "tokens": [
+            "BOLUM:",
+            "0000"
+          ],
+          "text": "BOLUM: 0000"
+        },
+        {
+          "index": 52,
+          "y_center": 911.63,
+          "tokens": [
+            "BATCHNO",
+            "o00636",
+            "STAN",
+            "000151"
+          ],
+          "text": "BATCHNO o00636 STAN 000151"
+        },
+        {
+          "index": 53,
+          "y_center": 932.17,
+          "tokens": [
+            "1ŞLEN",
+            "G:000151",
+            "PAV/NGI"
+          ],
+          "text": "1ŞLEN G:000151 PAV/NGI"
+        },
+        {
+          "index": 54,
+          "y_center": 943.25,
+          "tokens": [
+            "SN",
+            "PAVZI0002112"
+          ],
+          "text": "SN PAVZI0002112"
+        },
+        {
+          "index": 55,
+          "y_center": 954.0,
+          "tokens": [
+            "SATIŞ"
+          ],
+          "text": "SATIŞ"
+        },
+        {
+          "index": 56,
+          "y_center": 969.33,
+          "tokens": [
+            "4***",
+            "se",
+            "7018"
+          ],
+          "text": "4*** se 7018"
+        },
+        {
+          "index": 57,
+          "y_center": 989.63,
+          "tokens": [
+            "Yurt",
+            "lçi",
+            "VISA",
+            "Kred"
+          ],
+          "text": "Yurt lçi VISA Kred"
+        },
+        {
+          "index": 58,
+          "y_center": 1006.0,
+          "tokens": [
+            "TUTAR"
+          ],
+          "text": "TUTAR"
+        },
+        {
+          "index": 59,
+          "y_center": 1035.83,
+          "tokens": [
+            "630,82",
+            "TL",
+            "610947320848"
+          ],
+          "text": "630,82 TL 610947320848"
+        },
+        {
+          "index": 60,
+          "y_center": 1049.0,
+          "tokens": [
+            "RN"
+          ],
+          "text": "RN"
+        },
+        {
+          "index": 61,
+          "y_center": 1065.33,
+          "tokens": [
+            "ONAY",
+            "KODU:",
+            "173528",
+            "BANKA",
+            "REFERANS",
+            "610942151792"
+          ],
+          "text": "ONAY KODU: 173528 BANKA REFERANS 610942151792"
+        },
+        {
+          "index": 62,
+          "y_center": 1087.75,
+          "tokens": [
+            "Visa",
+            "Credit",
+            "2C234F",
+            "1A409/3262"
+          ],
+          "text": "Visa Credit 2C234F 1A409/3262"
+        },
+        {
+          "index": 63,
+          "y_center": 1094.5,
+          "tokens": [
+            "AC:"
+          ],
+          "text": "AC:"
+        },
+        {
+          "index": 64,
+          "y_center": 1110.4,
+          "tokens": [
+            "AD:",
+            "A00o0000031o10",
+            "ACQUIRER",
+            "ID",
+            "64"
+          ],
+          "text": "AD: A00o0000031o10 ACQUIRER ID 64"
+        },
+        {
+          "index": 65,
+          "y_center": 1142.5,
+          "tokens": [
+            "TUTAR",
+            "KARŞILIĞI",
+            "MAL",
+            "VEYA",
+            "HiZMET",
+            "AL",
+            "DIM"
+          ],
+          "text": "TUTAR KARŞILIĞI MAL VEYA HiZMET AL DIM"
+        },
+        {
+          "index": 66,
+          "y_center": 1167.5,
+          "tokens": [
+            "****",
+            "TEMASSIZ",
+            "işLEM",
+            "**"
+          ],
+          "text": "**** TEMASSIZ işLEM **"
+        },
+        {
+          "index": 67,
+          "y_center": 1185.0,
+          "tokens": [
+            "MUSTERi",
+            "NUSH",
+            "HAS"
+          ],
+          "text": "MUSTERi NUSH HAS"
+        },
+        {
+          "index": 68,
+          "y_center": 1226.75,
+          "tokens": [
+            "TÜRKİYE",
+            "SBANKASI"
+          ],
+          "text": "TÜRKİYE SBANKASI"
+        },
+        {
+          "index": 69,
+          "y_center": 1287.14,
+          "tokens": [
+            "Satişa",
+            "alt",
+            "e",
+            "belgelerinize",
+            "karekodu",
+            "okutar",
+            "ak"
+          ],
+          "text": "Satişa alt e belgelerinize karekodu okutar ak"
+        },
+        {
+          "index": 70,
+          "y_center": 1310.5,
+          "tokens": [
+            "ulaşanlirsiniz"
+          ],
+          "text": "ulaşanlirsiniz"
+        },
+        {
+          "index": 71,
+          "y_center": 1418.64,
+          "tokens": [
+            "PAVO",
+            "A.5",
+            "GMU",
+            "Verslyon",
+            "1.0.1",
+            "Kaslyer",
+            "[31812)"
+          ],
+          "text": "PAVO A.5 GMU Verslyon 1.0.1 Kaslyer [31812)"
+        },
+        {
+          "index": 72,
+          "y_center": 1437.5,
+          "tokens": [
+            "Terminal",
+            "PAV210002112"
+          ],
+          "text": "Terminal PAV210002112"
+        },
+        {
+          "index": 73,
+          "y_center": 1467.17,
+          "tokens": [
+            "Müşteri:",
+            "Nibal",
+            "Tüketicl"
+          ],
+          "text": "Müşteri: Nibal Tüketicl"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "ANADOLUÇARSIMAĞİŞI.TIC.VESANANO228",
+        "firmaAdresi": "ANADOL U ÇARSI MAĞ İŞI. TIC. VE SANA NO 228",
+        "vergiDairesi": "",
+        "vergiTcNo": "",
+        "belgeTuru": "Banka Pos Dekontu",
+        "fisNo": "",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "19.04.2026",
+        "saat": "15:42",
+        "kdvDetay": [],
+        "toplamKdv": "",
+        "kdvHaricToplam": "",
+        "araToplam": "",
+        "toplamTutar": "19.04",
+        "odemeYontemi": "Temassız",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": "48 NU 24",
+        "telefon": null,
+        "kategori": "Yakıt",
+        "uyari": "Bu bir banka pos dekontu — ödeme belgesidir, vergi fişi değildir.\nKDV tutarı mantıksız (Toplamdan büyük/eşit). KDV sıfırlandı, elle giriniz."
+      }
+    },
+    {
+      "image_id": "img_f26b68de095d",
+      "element_count": 101,
+      "row_count": 28,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 161.5,
+          "tokens": [
+            "BE0SShE"
+          ],
+          "text": "BE0SShE"
+        },
+        {
+          "index": 1,
+          "y_center": 213.75,
+          "tokens": [
+            "bsimlaosba",
+            "SibebieNE"
+          ],
+          "text": "bsimlaosba SibebieNE"
+        },
+        {
+          "index": 2,
+          "y_center": 254.5,
+          "tokens": [
+            "siniasldoyaliinühög"
+          ],
+          "text": "siniasldoyaliinühög"
+        },
+        {
+          "index": 3,
+          "y_center": 345.5,
+          "tokens": [
+            "E-Arsiv",
+            "Fatura"
+          ],
+          "text": "E-Arsiv Fatura"
+        },
+        {
+          "index": 4,
+          "y_center": 383.38,
+          "tokens": [
+            "BIM",
+            "BIRLESIK",
+            "MAGAZALAR",
+            "A.S."
+          ],
+          "text": "BIM BIRLESIK MAGAZALAR A.S."
+        },
+        {
+          "index": 5,
+          "y_center": 421.2,
+          "tokens": [
+            "GESI",
+            "FATIH",
+            "MAH.HANEDAN",
+            "SK.",
+            "NO:11A"
+          ],
+          "text": "GESI FATIH MAH.HANEDAN SK. NO:11A"
+        },
+        {
+          "index": 6,
+          "y_center": 457.83,
+          "tokens": [
+            "NELIKGAZI",
+            "/",
+            "KAYSERI"
+          ],
+          "text": "NELIKGAZI / KAYSERI"
+        },
+        {
+          "index": 7,
+          "y_center": 494.88,
+          "tokens": [
+            "Buyük",
+            "Mükellefler",
+            "VDM",
+            "1750051846"
+          ],
+          "text": "Buyük Mükellefler VDM 1750051846"
+        },
+        {
+          "index": 8,
+          "y_center": 530.0,
+          "tokens": [
+            "FATURA",
+            "NO:T042026023142900"
+          ],
+          "text": "FATURA NO:T042026023142900"
+        },
+        {
+          "index": 9,
+          "y_center": 566.0,
+          "tokens": [
+            "04.04.2026",
+            "16:56",
+            "Sira",
+            "No",
+            ":",
+            "179"
+          ],
+          "text": "04.04.2026 16:56 Sira No : 179"
+        },
+        {
+          "index": 10,
+          "y_center": 601.5,
+          "tokens": [
+            "ETTN206fcc3b-b969-47e4-9d8a-39eeblb38695"
+          ],
+          "text": "ETTN206fcc3b-b969-47e4-9d8a-39eeblb38695"
+        },
+        {
+          "index": 11,
+          "y_center": 685.5,
+          "tokens": [
+            "14565020404607620179"
+          ],
+          "text": "14565020404607620179"
+        },
+        {
+          "index": 12,
+          "y_center": 721.0,
+          "tokens": [
+            "TCKN/VKN:111111|1111-NIHAI",
+            "ÜKETICI"
+          ],
+          "text": "TCKN/VKN:111111|1111-NIHAI ÜKETICI"
+        },
+        {
+          "index": 13,
+          "y_center": 757.8,
+          "tokens": [
+            "ALIŞVERIŞ",
+            "POŞETi",
+            "BiM",
+            "220",
+            "*1.00"
+          ],
+          "text": "ALIŞVERIŞ POŞETi BiM 220 *1.00"
+        },
+        {
+          "index": 14,
+          "y_center": 800.0,
+          "tokens": [
+            "3",
+            "ad",
+            "X",
+            "69.00",
+            "O0e",
+            "wieg207.00"
+          ],
+          "text": "3 ad X 69.00 O0e wieg207.00"
+        },
+        {
+          "index": 15,
+          "y_center": 828.0,
+          "tokens": [
+            "MANTAR",
+            "400G",
+            "21."
+          ],
+          "text": "MANTAR 400G 21."
+        },
+        {
+          "index": 16,
+          "y_center": 860.08,
+          "tokens": [
+            "YUMURTA",
+            "30",
+            "LU",
+            "53-62G",
+            "21.",
+            "*99.00"
+          ],
+          "text": "YUMURTA 30 LU 53-62G 21. *99.00"
+        },
+        {
+          "index": 17,
+          "y_center": 894.17,
+          "tokens": [
+            "TOPLAM",
+            "KDV",
+            "*3.20"
+          ],
+          "text": "TOPLAM KDV *3.20"
+        },
+        {
+          "index": 18,
+          "y_center": 927.7,
+          "tokens": [
+            "Ddenecek",
+            "KDV",
+            "Dahil",
+            "Tutar",
+            "*307.00"
+          ],
+          "text": "Ddenecek KDV Dahil Tutar *307.00"
+        },
+        {
+          "index": 19,
+          "y_center": 962.5,
+          "tokens": [
+            "Banka",
+            "Kredi",
+            "Kartı",
+            "(1)",
+            "*307.00"
+          ],
+          "text": "Banka Kredi Kartı (1) *307.00"
+        },
+        {
+          "index": 20,
+          "y_center": 1001.0,
+          "tokens": [
+            "YAPI",
+            "KREDi"
+          ],
+          "text": "YAPI KREDi"
+        },
+        {
+          "index": 21,
+          "y_center": 1029.33,
+          "tokens": [
+            "I:2602224613",
+            "T:00A665E4",
+            "521807******070"
+          ],
+          "text": "I:2602224613 T:00A665E4 521807******070"
+        },
+        {
+          "index": 22,
+          "y_center": 1063.63,
+          "tokens": [
+            "04.04.2026",
+            "16:56",
+            "B:43",
+            "S:5"
+          ],
+          "text": "04.04.2026 16:56 B:43 S:5"
+        },
+        {
+          "index": 23,
+          "y_center": 1100.17,
+          "tokens": [
+            "Onay",
+            "No:875185",
+            "Ref.No:3531481467"
+          ],
+          "text": "Onay No:875185 Ref.No:3531481467"
+        },
+        {
+          "index": 24,
+          "y_center": 1130.75,
+          "tokens": [
+            "KDV",
+            "MATRAH",
+            "KDV",
+            "TUTAR",
+            "KOV",
+            "DAHIL"
+          ],
+          "text": "KDV MATRAH KDV TUTAR KOV DAHIL"
+        },
+        {
+          "index": 25,
+          "y_center": 1167.25,
+          "tokens": [
+            "Z1.",
+            "302.97",
+            "*3.03",
+            "*306.00"
+          ],
+          "text": "Z1. 302.97 *3.03 *306.00"
+        },
+        {
+          "index": 26,
+          "y_center": 1201.5,
+          "tokens": [
+            "Z20",
+            "0.83",
+            "M",
+            "0.17",
+            "*1.00"
+          ],
+          "text": "Z20 0.83 M 0.17 *1.00"
+        },
+        {
+          "index": 27,
+          "y_center": 1583.43,
+          "tokens": [
+            "POS:2",
+            "-",
+            "452064",
+            "-",
+            "A****",
+            "Nrtr",
+            "0051"
+          ],
+          "text": "POS:2 - 452064 - A**** Nrtr 0051"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "BIMBIRLESIKMAGAZALARA.S.",
+        "firmaAdresi": "GESI FATIH MAH.HANEDAN SK. NO:11A",
+        "vergiDairesi": "",
+        "vergiTcNo": "1750051846",
+        "belgeTuru": "e-Arşiv Fatura",
+        "fisNo": "T042026023142900",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "04.04.2026",
+        "saat": "16:56",
+        "kdvDetay": [],
+        "toplamKdv": "3.20",
+        "kdvHaricToplam": "307.00",
+        "araToplam": "",
+        "toplamTutar": "307.00",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": "30 LU 53",
+        "telefon": null,
+        "kategori": "Yakıt",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_53dfdc0b1300",
+      "element_count": 91,
+      "row_count": 25,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 139.0,
+          "tokens": [
+            "82-LaE-o"
+          ],
+          "text": "82-LaE-o"
+        },
+        {
+          "index": 1,
+          "y_center": 399.0,
+          "tokens": [
+            "E-Arsiv",
+            "Fatura"
+          ],
+          "text": "E-Arsiv Fatura"
+        },
+        {
+          "index": 2,
+          "y_center": 429.88,
+          "tokens": [
+            "BIM",
+            "BIRLESIK",
+            "MAGAZALAR",
+            "A.S."
+          ],
+          "text": "BIM BIRLESIK MAGAZALAR A.S."
+        },
+        {
+          "index": 3,
+          "y_center": 461.4,
+          "tokens": [
+            "UGUREVLER",
+            "MAH.",
+            "18.",
+            "CAD",
+            "98B"
+          ],
+          "text": "UGUREVLER MAH. 18. CAD 98B"
+        },
+        {
+          "index": 4,
+          "y_center": 493.33,
+          "tokens": [
+            "KOCASI",
+            "NAN/",
+            "KAYSERI"
+          ],
+          "text": "KOCASI NAN/ KAYSERI"
+        },
+        {
+          "index": 5,
+          "y_center": 525.6,
+          "tokens": [
+            "Buyük",
+            "Mükel",
+            "lefler",
+            "VDM",
+            "1750051846"
+          ],
+          "text": "Buyük Mükel lefler VDM 1750051846"
+        },
+        {
+          "index": 6,
+          "y_center": 558.25,
+          "tokens": [
+            "FATURA",
+            "N0:T052026053494350"
+          ],
+          "text": "FATURA N0:T052026053494350"
+        },
+        {
+          "index": 7,
+          "y_center": 584.67,
+          "tokens": [
+            "09.05.2026",
+            "18:24",
+            "Sira",
+            "No",
+            ":",
+            "195"
+          ],
+          "text": "09.05.2026 18:24 Sira No : 195"
+        },
+        {
+          "index": 8,
+          "y_center": 617.5,
+          "tokens": [
+            "ETTN9567ea72-b333-42ab-bb4d-6244ade58d25"
+          ],
+          "text": "ETTN9567ea72-b333-42ab-bb4d-6244ade58d25"
+        },
+        {
+          "index": 9,
+          "y_center": 693.0,
+          "tokens": [
+            "12830010905600580195"
+          ],
+          "text": "12830010905600580195"
+        },
+        {
+          "index": 10,
+          "y_center": 726.5,
+          "tokens": [
+            "TCKN/VKN:11111111111-NTHAI",
+            "TÜKETICI"
+          ],
+          "text": "TCKN/VKN:11111111111-NTHAI TÜKETICI"
+        },
+        {
+          "index": 11,
+          "y_center": 760.63,
+          "tokens": [
+            "2.385",
+            "kg",
+            "X",
+            "17.75"
+          ],
+          "text": "2.385 kg X 17.75"
+        },
+        {
+          "index": 12,
+          "y_center": 789.5,
+          "tokens": [
+            "PATATES",
+            "21.",
+            "*42.33"
+          ],
+          "text": "PATATES 21. *42.33"
+        },
+        {
+          "index": 13,
+          "y_center": 820.13,
+          "tokens": [
+            "BEYAZ",
+            "PEYNIR",
+            "750G",
+            "*205.00"
+          ],
+          "text": "BEYAZ PEYNIR 750G *205.00"
+        },
+        {
+          "index": 14,
+          "y_center": 851.17,
+          "tokens": [
+            "TOPLAM",
+            "KDV",
+            "*2.45"
+          ],
+          "text": "TOPLAM KDV *2.45"
+        },
+        {
+          "index": 15,
+          "y_center": 880.6,
+          "tokens": [
+            "Odenecek",
+            "KDV",
+            "Dahil",
+            "Tutar",
+            "*247.33"
+          ],
+          "text": "Odenecek KDV Dahil Tutar *247.33"
+        },
+        {
+          "index": 16,
+          "y_center": 910.0,
+          "tokens": [
+            "Banka",
+            "Kredi",
+            "Kartı",
+            "(1)",
+            "*247.33"
+          ],
+          "text": "Banka Kredi Kartı (1) *247.33"
+        },
+        {
+          "index": 17,
+          "y_center": 940.5,
+          "tokens": [
+            "GARANTI",
+            "BANKASI"
+          ],
+          "text": "GARANTI BANKASI"
+        },
+        {
+          "index": 18,
+          "y_center": 971.0,
+          "tokens": [
+            "I:3819074",
+            "T:02449204",
+            "540669******2010"
+          ],
+          "text": "I:3819074 T:02449204 540669******2010"
+        },
+        {
+          "index": 19,
+          "y_center": 1001.75,
+          "tokens": [
+            "09.05.2026",
+            "18:25",
+            "B:5811",
+            "S:4495"
+          ],
+          "text": "09.05.2026 18:25 B:5811 S:4495"
+        },
+        {
+          "index": 20,
+          "y_center": 1031.17,
+          "tokens": [
+            "Onay",
+            "No:481459",
+            "Ref.No:612975912636"
+          ],
+          "text": "Onay No:481459 Ref.No:612975912636"
+        },
+        {
+          "index": 21,
+          "y_center": 1062.5,
+          "tokens": [
+            "KOV",
+            "MATRAH",
+            "KOV",
+            "TUTAR",
+            "KOV",
+            "DAHIL"
+          ],
+          "text": "KOV MATRAH KOV TUTAR KOV DAHIL"
+        },
+        {
+          "index": 22,
+          "y_center": 1091.67,
+          "tokens": [
+            "X1.",
+            "244.88*2.45",
+            "*247.33"
+          ],
+          "text": "X1. 244.88*2.45 *247.33"
+        },
+        {
+          "index": 23,
+          "y_center": 1398.5,
+          "tokens": [
+            "POS:1",
+            "-",
+            "430349",
+            "***",
+            "K**",
+            "Ç",
+            "957012831"
+          ],
+          "text": "POS:1 - 430349 *** K** Ç 957012831"
+        },
+        {
+          "index": 24,
+          "y_center": 1427.71,
+          "tokens": [
+            "1283,",
+            "UĞUREVLER",
+            "/",
+            "KAYSERI",
+            "6S",
+            "No:",
+            "58"
+          ],
+          "text": "1283, UĞUREVLER / KAYSERI 6S No: 58"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "BIMBIRLESIKMAGAZALARA.S.",
+        "firmaAdresi": "UGUREVLER MAH. 18. CAD 98B",
+        "vergiDairesi": "",
+        "vergiTcNo": "1750051846",
+        "belgeTuru": "e-Arşiv Fatura",
+        "fisNo": "",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "09.05.2026",
+        "saat": "18:24",
+        "kdvDetay": [],
+        "toplamKdv": "2.45",
+        "kdvHaricToplam": "247.33",
+        "araToplam": "",
+        "toplamTutar": "247.33",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": null,
+        "pompaNo": null,
+        "aracPlakasi": null,
+        "telefon": null,
+        "kategori": "Market",
+        "uyari": null
+      }
+    },
+    {
+      "image_id": "img_0a5d1fc39f49",
+      "element_count": 299,
+      "row_count": 70,
+      "order": [
+        {
+          "index": 0,
+          "y_center": 48.5,
+          "tokens": [
+            "E-Arsiv",
+            "Fatura"
+          ],
+          "text": "E-Arsiv Fatura"
+        },
+        {
+          "index": 1,
+          "y_center": 69.5,
+          "tokens": [
+            "BIM",
+            "BIRLESIK",
+            "WAGAZALAR",
+            "A.S."
+          ],
+          "text": "BIM BIRLESIK WAGAZALAR A.S."
+        },
+        {
+          "index": 2,
+          "y_center": 90.25,
+          "tokens": [
+            "ERCIYESEVLER",
+            "VAH.",
+            "30",
+            "AGUSTOS",
+            "BULV.",
+            "NO:10"
+          ],
+          "text": "ERCIYESEVLER VAH. 30 AGUSTOS BULV. NO:10"
+        },
+        {
+          "index": 3,
+          "y_center": 113.5,
+          "tokens": [
+            "KOCASINAN",
+            "|",
+            "KAYSERI"
+          ],
+          "text": "KOCASINAN | KAYSERI"
+        },
+        {
+          "index": 4,
+          "y_center": 133.63,
+          "tokens": [
+            "Büyük",
+            "Vükellefler",
+            "VDM",
+            "1750061846"
+          ],
+          "text": "Büyük Vükellefler VDM 1750061846"
+        },
+        {
+          "index": 5,
+          "y_center": 157.5,
+          "tokens": [
+            "FATURA",
+            "NO:AE02026002577192"
+          ],
+          "text": "FATURA NO:AE02026002577192"
+        },
+        {
+          "index": 6,
+          "y_center": 180.56,
+          "tokens": [
+            "10.05,2026",
+            "ETTNbegcad4-ae64-41e7-9ei8-b9444dab4b4c",
+            "17:",
+            "18",
+            "Sira",
+            "No",
+            ":",
+            "113"
+          ],
+          "text": "10.05,2026 ETTNbegcad4-ae64-41e7-9ei8-b9444dab4b4c 17: 18 Sira No : 113"
+        },
+        {
+          "index": 7,
+          "y_center": 276.0,
+          "tokens": [
+            "40520031005613900113"
+          ],
+          "text": "40520031005613900113"
+        },
+        {
+          "index": 8,
+          "y_center": 311.75,
+          "tokens": [
+            "TCKN/VKN:",
+            "21128310086"
+          ],
+          "text": "TCKN/VKN: 21128310086"
+        },
+        {
+          "index": 9,
+          "y_center": 335.0,
+          "tokens": [
+            "Isin",
+            "/Ünvan:",
+            "ERDINÇ",
+            "YAVUZ"
+          ],
+          "text": "Isin /Ünvan: ERDINÇ YAVUZ"
+        },
+        {
+          "index": 10,
+          "y_center": 357.13,
+          "tokens": [
+            "Vergi",
+            "Dairesi:",
+            "GEVHER",
+            "NESIBE"
+          ],
+          "text": "Vergi Dairesi: GEVHER NESIBE"
+        },
+        {
+          "index": 11,
+          "y_center": 379.0,
+          "tokens": [
+            "Adres:",
+            "FEVZt",
+            "CAKMAK",
+            "VAHALLESİ"
+          ],
+          "text": "Adres: FEVZt CAKMAK VAHALLESİ"
+        },
+        {
+          "index": 12,
+          "y_center": 418.5,
+          "tokens": [
+            "Kocasinan",
+            "I",
+            "Kayseri"
+          ],
+          "text": "Kocasinan I Kayseri"
+        },
+        {
+          "index": 13,
+          "y_center": 438.58,
+          "tokens": [
+            "KATI",
+            "SABUN",
+            "5X75",
+            "6",
+            "20",
+            "*70.00"
+          ],
+          "text": "KATI SABUN 5X75 6 20 *70.00"
+        },
+        {
+          "index": 14,
+          "y_center": 461.25,
+          "tokens": [
+            "ANGORA",
+            "YUVAK",
+            "3",
+            "LO",
+            "510",
+            "149.0"
+          ],
+          "text": "ANGORA YUVAK 3 LO 510 149.0"
+        },
+        {
+          "index": 15,
+          "y_center": 485.75,
+          "tokens": [
+            "4",
+            "ad",
+            "X",
+            "1.00"
+          ],
+          "text": "4 ad X 1.00"
+        },
+        {
+          "index": 16,
+          "y_center": 504.9,
+          "tokens": [
+            "ALIŞVERIS",
+            "POSETI",
+            "BIY",
+            "920",
+            "4.00"
+          ],
+          "text": "ALIŞVERIS POSETI BIY 920 4.00"
+        },
+        {
+          "index": 17,
+          "y_center": 526.4,
+          "tokens": [
+            "TUVALET",
+            "KAGIÓI",
+            "12L1",
+            "20",
+            "*118,00"
+          ],
+          "text": "TUVALET KAGIÓI 12L1 20 *118,00"
+        },
+        {
+          "index": 18,
+          "y_center": 549.83,
+          "tokens": [
+            "KATISABUNA200VLIŞIL",
+            "20",
+            "\"92.50"
+          ],
+          "text": "KATISABUNA200VLIŞIL 20 \"92.50"
+        },
+        {
+          "index": 19,
+          "y_center": 572.1,
+          "tokens": [
+            "KAGIT",
+            "HAVLU6",
+            "LI",
+            "420",
+            "\"84.00"
+          ],
+          "text": "KAGIT HAVLU6 LI 420 \"84.00"
+        },
+        {
+          "index": 20,
+          "y_center": 594.9,
+          "tokens": [
+            "SIVI",
+            "ÇAV",
+            "DET.RENK.3L",
+            "+20",
+            "\"179.0"
+          ],
+          "text": "SIVI ÇAV DET.RENK.3L +20 \"179.0"
+        },
+        {
+          "index": 21,
+          "y_center": 616.7,
+          "tokens": [
+            "SAVPUÁN",
+            "400ML",
+            "ELİDOR",
+            "\\20",
+            "\"119.00"
+          ],
+          "text": "SAVPUÁN 400ML ELİDOR \\20 \"119.00"
+        },
+        {
+          "index": 22,
+          "y_center": 638.0,
+          "tokens": [
+            "ÝUHUSATICI",
+            "1,44",
+            "L",
+            "120",
+            "179.00"
+          ],
+          "text": "ÝUHUSATICI 1,44 L 120 179.00"
+        },
+        {
+          "index": 23,
+          "y_center": 660.75,
+          "tokens": [
+            "ARAP",
+            "SABUNU",
+            "1L",
+            "DOA",
+            "20",
+            "\"57.60"
+          ],
+          "text": "ARAP SABUNU 1L DOA 20 \"57.60"
+        },
+        {
+          "index": 24,
+          "y_center": 680.83,
+          "tokens": [
+            "TENZ.SIVISILASPEROX",
+            "20",
+            "*99.00"
+          ],
+          "text": "TENZ.SIVISILASPEROX 20 *99.00"
+        },
+        {
+          "index": 25,
+          "y_center": 703.0,
+          "tokens": [
+            "LTÇAVAŞIRSUYU1,26L",
+            "%20",
+            "48.00"
+          ],
+          "text": "LTÇAVAŞIRSUYU1,26L %20 48.00"
+        },
+        {
+          "index": 26,
+          "y_center": 725.13,
+          "tokens": [
+            "2",
+            "ad",
+            "X",
+            "99.60"
+          ],
+          "text": "2 ad X 99.60"
+        },
+        {
+          "index": 27,
+          "y_center": 744.38,
+          "tokens": [
+            "KAYNAK",
+            "20OG",
+            "KEREM",
+            "*199.00"
+          ],
+          "text": "KAYNAK 20OG KEREM *199.00"
+        },
+        {
+          "index": 28,
+          "y_center": 764.6,
+          "tokens": [
+            "UN",
+            "2",
+            "KG",
+            "EFSANE",
+            "1.54.00"
+          ],
+          "text": "UN 2 KG EFSANE 1.54.00"
+        },
+        {
+          "index": 29,
+          "y_center": 782.4,
+          "tokens": [
+            "KRAKER",
+            "11606",
+            "OLKER",
+            "1.",
+            "*31.00"
+          ],
+          "text": "KRAKER 11606 OLKER 1. *31.00"
+        },
+        {
+          "index": 30,
+          "y_center": 798.58,
+          "tokens": [
+            "ISLAK",
+            "HAVLU",
+            "100",
+            "LO",
+            "420",
+            "*49.00"
+          ],
+          "text": "ISLAK HAVLU 100 LO 420 *49.00"
+        },
+        {
+          "index": 31,
+          "y_center": 817.83,
+          "tokens": [
+            "ISLAK",
+            "HAVLU",
+            "100",
+            "LO",
+            "20",
+            "*49.00"
+          ],
+          "text": "ISLAK HAVLU 100 LO 20 *49.00"
+        },
+        {
+          "index": 32,
+          "y_center": 839.42,
+          "tokens": [
+            "AYÇIÇEK",
+            "YAĞI",
+            "2L",
+            "SOLE",
+            "%1.",
+            "\"209.00"
+          ],
+          "text": "AYÇIÇEK YAĞI 2L SOLE %1. \"209.00"
+        },
+        {
+          "index": 33,
+          "y_center": 860.5,
+          "tokens": [
+            "0.6",
+            "kg",
+            "X",
+            "99.",
+            "00"
+          ],
+          "text": "0.6 kg X 99. 00"
+        },
+        {
+          "index": 34,
+          "y_center": 882.67,
+          "tokens": [
+            "LIMON",
+            "1.",
+            "*49,50"
+          ],
+          "text": "LIMON 1. *49,50"
+        },
+        {
+          "index": 35,
+          "y_center": 903.38,
+          "tokens": [
+            "TEREYAGI",
+            "KOZALAK3606",
+            "%1.",
+            "\"219.00"
+          ],
+          "text": "TEREYAGI KOZALAK3606 %1. \"219.00"
+        },
+        {
+          "index": 36,
+          "y_center": 925.9,
+          "tokens": [
+            "TAZE",
+            "KAŞAR",
+            "7006",
+            "41.",
+            "\"276.00"
+          ],
+          "text": "TAZE KAŞAR 7006 41. \"276.00"
+        },
+        {
+          "index": 37,
+          "y_center": 947.75,
+          "tokens": [
+            "BAZLAKA",
+            "uu43.00"
+          ],
+          "text": "BAZLAKA uu43.00"
+        },
+        {
+          "index": 38,
+          "y_center": 970.3,
+          "tokens": [
+            "KRAKER",
+            "1506G",
+            "ÜLKER",
+            "41.",
+            "31.00"
+          ],
+          "text": "KRAKER 1506G ÜLKER 41. 31.00"
+        },
+        {
+          "index": 39,
+          "y_center": 992.83,
+          "tokens": [
+            "GOFPETFNDK",
+            "142GHOŞBEŞ",
+            "1.\"59.00"
+          ],
+          "text": "GOFPETFNDK 142GHOŞBEŞ 1.\"59.00"
+        },
+        {
+          "index": 40,
+          "y_center": 1014.71,
+          "tokens": [
+            "SEKER",
+            "TOZ",
+            "2",
+            "KG",
+            "ŞAFAK",
+            "1.",
+            "\"87.50"
+          ],
+          "text": "SEKER TOZ 2 KG ŞAFAK 1. \"87.50"
+        },
+        {
+          "index": 41,
+          "y_center": 1037.13,
+          "tokens": [
+            "2",
+            "ad",
+            "X",
+            "69.50"
+          ],
+          "text": "2 ad X 69.50"
+        },
+        {
+          "index": 42,
+          "y_center": 1057.0,
+          "tokens": [
+            "WADEN",
+            "SUYU",
+            "6X200ML",
+            "1.119.00"
+          ],
+          "text": "WADEN SUYU 6X200ML 1.119.00"
+        },
+        {
+          "index": 43,
+          "y_center": 1078.17,
+          "tokens": [
+            "TAZE",
+            "PEYNTR",
+            "200",
+            "G",
+            "31.",
+            "\"62.60"
+          ],
+          "text": "TAZE PEYNTR 200 G 31. \"62.60"
+        },
+        {
+          "index": 44,
+          "y_center": 1098.67,
+          "tokens": [
+            "0Z0N",
+            "PEKME71",
+            "400",
+            "G",
+            "%l.",
+            "\"94.50"
+          ],
+          "text": "0Z0N PEKME71 400 G %l. \"94.50"
+        },
+        {
+          "index": 45,
+          "y_center": 1121.75,
+          "tokens": [
+            "BISKOVI",
+            "31316BURCAK",
+            "1.",
+            "41.49",
+            "72.60",
+            "50"
+          ],
+          "text": "BISKOVI 31316BURCAK 1. 41.49 72.60 50"
+        },
+        {
+          "index": 46,
+          "y_center": 1137.38,
+          "tokens": [
+            "WAVA",
+            "WEYY,",
+            "1250",
+            "HER0"
+          ],
+          "text": "WAVA WEYY, 1250 HER0"
+        },
+        {
+          "index": 47,
+          "y_center": 1156.0,
+          "tokens": [
+            "HLVA",
+            "SADE/KAKAO.650G",
+            "41.",
+            "219.00"
+          ],
+          "text": "HLVA SADE/KAKAO.650G 41. 219.00"
+        },
+        {
+          "index": 48,
+          "y_center": 1174.63,
+          "tokens": [
+            "SIYAHÇAYRIZE",
+            "1KGÇAYKR",
+            "%1",
+            "\"269.50"
+          ],
+          "text": "SIYAHÇAYRIZE 1KGÇAYKR %1 \"269.50"
+        },
+        {
+          "index": 49,
+          "y_center": 1191.33,
+          "tokens": [
+            "YUMURTA",
+            "63-72G",
+            "15",
+            "I",
+            "1.",
+            "*89.00"
+          ],
+          "text": "YUMURTA 63-72G 15 I 1. *89.00"
+        },
+        {
+          "index": 50,
+          "y_center": 1210.38,
+          "tokens": [
+            "SÜT",
+            "1L",
+            "D0ST",
+            "49.50"
+          ],
+          "text": "SÜT 1L D0ST 49.50"
+        },
+        {
+          "index": 51,
+          "y_center": 1230.5,
+          "tokens": [
+            "LAKTOZSUZ",
+            "15.00",
+            "L",
+            "YORSAN",
+            "47.60"
+          ],
+          "text": "LAKTOZSUZ 15.00 L YORSAN 47.60"
+        },
+        {
+          "index": 52,
+          "y_center": 1258.75,
+          "tokens": [
+            "iKIEK",
+            "SUSAWLI",
+            "61",
+            "\"30.00"
+          ],
+          "text": "iKIEK SUSAWLI 61 \"30.00"
+        },
+        {
+          "index": 53,
+          "y_center": 1279.64,
+          "tokens": [
+            "1O",
+            "3",
+            "ad",
+            "X",
+            "14",
+            "00",
+            "\"42.0"
+          ],
+          "text": "1O 3 ad X 14 00 \"42.0"
+        },
+        {
+          "index": 54,
+          "y_center": 1291.5,
+          "tokens": [
+            "i1"
+          ],
+          "text": "i1"
+        },
+        {
+          "index": 55,
+          "y_center": 1317.67,
+          "tokens": [
+            "Kanpanya",
+            "TEAdirinler",
+            "29.75"
+          ],
+          "text": "Kanpanya TEAdirinler 29.75"
+        },
+        {
+          "index": 56,
+          "y_center": 1339.6,
+          "tokens": [
+            "VADEN",
+            "SUVU",
+            "6X200",
+            "kazanciniz",
+            "29,751L"
+          ],
+          "text": "VADEN SUVU 6X200 kazanciniz 29,751L"
+        },
+        {
+          "index": 57,
+          "y_center": 1355.0,
+          "tokens": [
+            "Bu",
+            "alisverisinizden"
+          ],
+          "text": "Bu alisverisinizden"
+        },
+        {
+          "index": 58,
+          "y_center": 1370.0,
+          "tokens": [
+            "\"228.29"
+          ],
+          "text": "\"228.29"
+        },
+        {
+          "index": 59,
+          "y_center": 1385.43,
+          "tokens": [
+            "Odenecek",
+            "TOPLAV",
+            "KOV",
+            "KDV",
+            "Dahil",
+            "Tutar",
+            "3,681.75"
+          ],
+          "text": "Odenecek TOPLAV KOV KDV Dahil Tutar 3,681.75"
+        },
+        {
+          "index": 60,
+          "y_center": 1411.1,
+          "tokens": [
+            "Banka",
+            "Kredi",
+            "Karti",
+            "(1)",
+            "\"3,661.76"
+          ],
+          "text": "Banka Kredi Karti (1) \"3,661.76"
+        },
+        {
+          "index": 61,
+          "y_center": 1437.17,
+          "tokens": [
+            "GARANTI",
+            "BANKASI",
+            "640689****2010"
+          ],
+          "text": "GARANTI BANKASI 640689****2010"
+        },
+        {
+          "index": 62,
+          "y_center": 1457.0,
+          "tokens": [
+            "I:3805298",
+            "T:01189937",
+            "$:9473"
+          ],
+          "text": "I:3805298 T:01189937 $:9473"
+        },
+        {
+          "index": 63,
+          "y_center": 1470.67,
+          "tokens": [
+            "10.05.2028",
+            "17:21",
+            "B:8800"
+          ],
+          "text": "10.05.2028 17:21 B:8800"
+        },
+        {
+          "index": 64,
+          "y_center": 1488.63,
+          "tokens": [
+            "nay",
+            "No:870013",
+            "Ref",
+            ".No:613061697458"
+          ],
+          "text": "nay No:870013 Ref .No:613061697458"
+        },
+        {
+          "index": 65,
+          "y_center": 1510.42,
+          "tokens": [
+            "KDV",
+            "NATRAH",
+            "KDV",
+            "TUTAR",
+            "KDV",
+            "DAHIL"
+          ],
+          "text": "KDV NATRAH KDV TUTAR KDV DAHIL"
+        },
+        {
+          "index": 66,
+          "y_center": 1531.13,
+          "tokens": [
+            "1,",
+            "2,341,34",
+            "\"23.41",
+            "2,364.75"
+          ],
+          "text": "1, 2,341,34 \"23.41 2,364.75"
+        },
+        {
+          "index": 67,
+          "y_center": 1547.5,
+          "tokens": [
+            "\"13.55",
+            "149.00"
+          ],
+          "text": "\"13.55 149.00"
+        },
+        {
+          "index": 68,
+          "y_center": 1564.29,
+          "tokens": [
+            "310",
+            "136.45",
+            "966.67",
+            "M91.33",
+            "oYA148.",
+            "1",
+            "00"
+          ],
+          "text": "310 136.45 966.67 M91.33 oYA148. 1 00"
+        },
+        {
+          "index": 69,
+          "y_center": 1573.0,
+          "tokens": [
+            "20"
+          ],
+          "text": "20"
+        }
+      ],
+      "parsed": {
+        "firmaAdi": "BIMBIRLESIKWAGAZALARA.S.",
+        "firmaAdresi": "ERCIYESEVLER VAH. 30 AGUSTOS BULV. NO:10",
+        "vergiDairesi": "GEVHER NESIBE",
+        "vergiTcNo": "21128310086",
+        "belgeTuru": "e-Arşiv Fatura",
+        "fisNo": "AE02026002577192",
+        "seriNo": "",
+        "zNo": "",
+        "ekuNo": "",
+        "ettn": "",
+        "mersisNo": "",
+        "iban": "",
+        "tarih": "10.05.2026",
+        "saat": "17:21",
+        "kdvDetay": [
+          {
+            "oran": "%20",
+            "matrah": "1.26",
+            "tutar": "1.26"
+          },
+          {
+            "oran": "%1",
+            "matrah": "209.00",
+            "tutar": "209.00"
+          }
+        ],
+        "toplamKdv": "",
+        "kdvHaricToplam": "72.60",
+        "araToplam": "",
+        "toplamTutar": "681.75",
+        "odemeYontemi": "Kredi Kartı",
+        "paraUstu": "",
+        "paraBirimi": "TL",
+        "yakitTuru": null,
+        "yakitLitre": "1,44 L",
+        "pompaNo": null,
+        "aracPlakasi": "44 L 120",
+        "telefon": null,
+        "kategori": "Yakıt",
+        "uyari": "KDV tutarı mantıksız (toplamın %30'unu aşıyor). KDV sıfırlandı, elle giriniz."
+      }
+    }
+  ]
+}

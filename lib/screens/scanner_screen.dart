@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/camera_service.dart';
 import '../services/ocr_service.dart';
 import '../services/image_processor.dart';
-import '../utils/receipt_parser.dart';
+import '../utils/receipt_analyzer.dart';
 import '../widgets/result_sheet.dart';
 import '../utils/database_helper.dart';
 import '../main.dart'; // AppColors
@@ -86,7 +86,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   void _showResult(RecognizedText ocr, String imagePath) async {
-    final data = ReceiptParser.parse(ocr);
+    // NER birincil + regex fallback (model yoksa saf regex'e düşer).
+    final data = await ReceiptAnalyzer.analyze(ocr);
     data.imagePath = imagePath;
     data.isApproved = false; // Onay bekleyenlere düşsün
 

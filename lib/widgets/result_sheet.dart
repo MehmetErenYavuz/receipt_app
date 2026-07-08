@@ -296,8 +296,8 @@ class _ResultSheetState extends State<ResultSheet> {
                       Text(
                         widget.isDetailMode
                             ? (_editMode
-                                  ? 'Bilgileri düzenleyin'
-                                  : 'Bilgileri görüntülüyorsunuz')
+                                ? 'Bilgileri düzenleyin'
+                                : 'Bilgileri görüntülüyorsunuz')
                             : 'Verileri kontrol edip kaydedin',
                         style: const TextStyle(
                           color: AppColors.textSecondary,
@@ -609,9 +609,8 @@ class _ResultSheetState extends State<ResultSheet> {
                     ),
                   _EditableRow(
                     icon: Icons.badge_outlined,
-                    label: d.vergiTcNo.length == 11
-                        ? 'TC Kimlik No'
-                        : 'Vergi No',
+                    label:
+                        d.vergiTcNo.length == 11 ? 'TC Kimlik No' : 'Vergi No',
                     controller: _controllers['vergi']!,
                     editMode: _editMode,
                     confidence: d.confidenceScores['vergi'],
@@ -1003,23 +1002,23 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 12, top: 4),
-    child: Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.primary,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
+        padding: const EdgeInsets.only(bottom: 12, top: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1037,38 +1036,38 @@ class _StaticRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Row(
-      children: [
-        Icon(icon, color: AppColors.textTertiary, size: 18),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.textTertiary, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+            Expanded(
+              flex: 3,
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1100,91 +1099,91 @@ class _EditableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Row(
-      children: [
-        Icon(icon, color: AppColors.textTertiary, size: 18),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        // Güven noktası (Tasarım aynı korundu)
-        if (confidence != null)
-          Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _confColor(),
-            ),
-          ),
-        Expanded(
-          flex: 3,
-          child: editMode
-              ? TextField(
-                  controller: controller,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.surfaceAlt,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixText: suffix,
-                    suffixStyle: const TextStyle(
-                      color: AppColors.textTertiary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  textAlign: TextAlign.right,
-                )
-              : GestureDetector(
-                  onLongPress: () {
-                    Clipboard.setData(ClipboardData(text: controller.text));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$label kopyalandı'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    controller.text.isEmpty
-                        ? '—'
-                        : '${controller.text}${suffix != null ? ' $suffix' : ''}',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: controller.text.isEmpty
-                          ? AppColors.textTertiary
-                          : AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.textTertiary, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
+              ),
+            ),
+            // Güven noktası (Tasarım aynı korundu)
+            if (confidence != null)
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _confColor(),
+                ),
+              ),
+            Expanded(
+              flex: 3,
+              child: editMode
+                  ? TextField(
+                      controller: controller,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.surfaceAlt,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixText: suffix,
+                        suffixStyle: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      textAlign: TextAlign.right,
+                    )
+                  : GestureDetector(
+                      onLongPress: () {
+                        Clipboard.setData(ClipboardData(text: controller.text));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$label kopyalandı'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        controller.text.isEmpty
+                            ? '—'
+                            : '${controller.text}${suffix != null ? ' $suffix' : ''}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: controller.text.isEmpty
+                              ? AppColors.textTertiary
+                              : AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1196,48 +1195,49 @@ class _KdvDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.subdirectory_arrow_right_rounded,
-          color: AppColors.textTertiary,
-          size: 18,
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            item.oran,
-            style: const TextStyle(
-              color: AppColors.accent,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.subdirectory_arrow_right_rounded,
+              color: AppColors.textTertiary,
+              size: 18,
             ),
-          ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                item.oran,
+                style: const TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (item.matrah != null && item.matrah.toString().isNotEmpty)
+              Text(
+                'Matrah: ${item.matrah} ₺',
+                style: const TextStyle(
+                    color: AppColors.textTertiary, fontSize: 13),
+              ),
+            const Spacer(),
+            Text(
+              'KDV: ${item.tutar} ₺',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        if (item.matrah != null && item.matrah.toString().isNotEmpty)
-          Text(
-            'Matrah: ${item.matrah} ₺',
-            style: const TextStyle(color: AppColors.textTertiary, fontSize: 13),
-          ),
-        const Spacer(),
-        Text(
-          'KDV: ${item.tutar} ₺',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1263,46 +1263,46 @@ class _CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-    spacing: 10,
-    runSpacing: 10,
-    children: _categories.map((cat) {
-      final isSelected = selected == cat.$1;
-      final renk = AppColors.kategoriRenkler[cat.$1] ?? AppColors.primary;
+        spacing: 10,
+        runSpacing: 10,
+        children: _categories.map((cat) {
+          final isSelected = selected == cat.$1;
+          final renk = AppColors.kategoriRenkler[cat.$1] ?? AppColors.primary;
 
-      return GestureDetector(
-        onTap: () => onChanged(cat.$1),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? renk : AppColors.surfaceAlt,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? renk : AppColors.divider,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                cat.$2,
-                size: 16,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                cat.$1,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          return GestureDetector(
+            onTap: () => onChanged(cat.$1),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? renk : AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? renk : AppColors.divider,
+                  width: 1,
                 ),
               ),
-            ],
-          ),
-        ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    cat.$2,
+                    size: 16,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    cat.$1,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       );
-    }).toList(),
-  );
 }

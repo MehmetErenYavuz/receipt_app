@@ -6,11 +6,29 @@ import 'package:receipt_app/extensions/string_extensions.dart';
 import 'package:receipt_app/utils/smart_word_corrector.dart';
 
 // ═══════════════════════════════════════════════════════════════════════
+// YARDIMCI: OCR elemanı soyutlaması (ML Kit TextElement VEYA sentetik kayıt)
+// ═══════════════════════════════════════════════════════════════════════
+// `_buildRows` mantığı bu soyutlama üzerinden çalışır; böylece hem canlı ML
+// Kit çıktısı hem de test/golden harness kayıtları AYNI satır-sıralamasını
+// üretir. `order` = akış (json nested) sırası → kararlı tie-break için.
+class _El {
+  final String text;
+  final double left;
+  final double top;
+  final double height;
+  final int order; // akış sırası (json_index) — tie-break ikincil anahtarı
+
+  const _El(this.text, this.left, this.top, this.height, this.order);
+
+  double get yCenter => top + height / 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // YARDIMCI: Koordinat Tabanlı Satır
 // ═══════════════════════════════════════════════════════════════════════
 class _Row {
   double yCenter;
-  final List<TextElement> elements;
+  final List<_El> elements;
 
   _Row(this.yCenter, this.elements);
 
@@ -162,6 +180,29 @@ class ReceiptParser {
     'ODENEN',
     'ODENECEK',
     'TAHS',
+  ];
+
+  // GENEL TOPLAM belirteçleri (en yüksek öncelik): bunlar belgenin NİHAİ
+  // (KDV dahil) toplamıdır → "MAL HİZMET TOPLAM"/"ARA TOPLAM" gibi alt-toplamları
+  // ve genel "TUTAR"ı yener. "KDV DAHİL/VERGİLER DAHİL" = toplam (KDV değil).
+  static const List<String> _grandTotalKw = [
+    'GENEL TOPLAM',
+    'G.TOPLAM',
+    'GENEL TOP',
+    'GNL TOPLAM',
+    'VERGILER DAHIL',
+    'VERGİLER DAHİL',
+    'KDV DAHIL TOPLAM',
+    'KDV DAHİL TOPLAM',
+    'KDV DAHIL',
+    'KDV DAHİL',
+    'ODENECEK TUTAR',
+    'ÖDENECEK TUTAR',
+    'ODENECEK',
+    'ÖDENECEK',
+    'TAHSIL',
+    'TAHSİL',
+    'TOPLAM TUTAR',
   ];
 
   // KDV ararken kullanılacak kesin belirteçler
@@ -455,13 +496,15 @@ class ReceiptParser {
   // GÜÇLENDİRİLMİŞ REGEX'LER (Yıldız (*) işaretlerini akıllıca yönetir)
   // ═══════════════════════════════════════════════════════════════════
 
-  // FİYAT REGEX: BİM ve A101 gibi marketlerdeki "1.250,50 *" veya "* 15,00" formatını yakalar
+  // FİYAT REGEX: BİM ve A101 gibi marketlerdeki "1.250,50 *" veya "* 15,00" formatını yakalar.
+  // Tamsayı kısmı: YA gruplu binlik (1.234, 12.345) YA DA düz hane dizisi (1234) — böylece
+  // binlik-ayraçsız 1000+ tutarlar (1234,56) "234,56" diye kesilmez. Gruplu alt ÖNCE denenir.
   static final RegExp _priceReg = RegExp(
-    r'\*?\s*\d{1,3}(?:[.\s]\d{3})*[.,]\d{2}\s*\*?(?!\d)',
+    r'\*?\s*(?:\d{1,3}(?:[.\s]\d{3})+|\d+)[.,]\d{2}\s*\*?(?!\d)',
   );
 
   static final RegExp _numOnlyReg = RegExp(
-    r'\d{1,3}(?:[.\s]\d{3})*[.,]\d{2}(?!\d)',
+    r'(?:\d{1,3}(?:[.\s]\d{3})+|\d+)[.,]\d{2}(?!\d)',
   );
 
   static final RegExp _priceRegLoose = RegExp(
@@ -493,6 +536,9 @@ class ReceiptParser {
       caseSensitive: false);
   static final RegExp _araToplamReg =
       RegExp(r'\bARA\s*TOP(?:LAM)?\b', caseSensitive: false);
+  // Fatura toplamı: "FAT.TOP", "FAT . TOP.", "FAT TOP", "FATURA TOP(LAM)" → NİHAİ toplam.
+  static final RegExp _faturaTopReg =
+      RegExp(r'\bFAT(?:URA)?\s*\.?\s*TOP', caseSensitive: false);
   static final RegExp _telefonReg =
       RegExp(r'\b(0\d{3}[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2})\b');
 
@@ -502,7 +548,18 @@ class ReceiptParser {
   static ReceiptData parse(RecognizedText ocr) {
     final rows = _buildRows(ocr);
     if (rows.isEmpty) return ReceiptData(uyari: 'Metin okunamadı.');
+    return _parseRows(rows);
+  }
 
+  // ── ML Kit'siz giriş: sentetik OCR elemanlarından tam parse (test/golden) ──
+  static ReceiptData parseFromElements(
+      List<({String text, double x, double y, double w, double h})> els) {
+    final rows = _rowsFromElements(els);
+    if (rows.isEmpty) return ReceiptData(uyari: 'Metin okunamadı.');
+    return _parseRows(rows);
+  }
+
+  static ReceiptData _parseRows(List<_Row> rows) {
     final bool muhtemelenBurusuk = _isCrumpled(rows);
     final bool isIptal = rows.any((r) =>
         r.upper.contains('İPTAL') ||
@@ -577,38 +634,39 @@ class ReceiptParser {
           uyari + '\nNot: Fiş buruşuk olarak algılandı, alanları kontrol edin.';
     }
 
-    String finalToplamKdv = topKdv.value;
-    String finalToplamTutar = toplam.value;
+    // ── TUTAR UZLAŞTIRMA (matrah ↔ KDV ↔ toplam çapraz doğrulama) ──
+    // para üstü / swap / KDV türetme / %30 sanity / 820 koruması / ₺ OCR düzeltmesi.
+    final odemeTutar = _paymentAmounts(rows);
+    final bool isEarsivBelge =
+        belge.value.toLowerCase().contains('arşiv') || ettn.found;
 
-    // ── KUSURSUZ MANTIK FİLTRESİ (820+820 Hatası Çözümü) ──
-    if (toplam.found && topKdv.found) {
-      double tVal = double.tryParse(toplam.value) ?? 0;
-      double kVal = double.tryParse(topKdv.value) ?? 0;
+    final recon = _reconcileAmounts(
+      matrah: double.tryParse(matrah.value) ?? 0,
+      kdv: double.tryParse(topKdv.value) ?? 0,
+      toplam: double.tryParse(toplam.value) ?? 0,
+      cashTendered: odemeTutar['nakit']!,
+      cardPaid: odemeTutar['kart']!,
+      change: double.tryParse(paraUstu.value) ?? 0,
+      singleRate: _detectSingleVatRate(rows),
+      totalReliable: toplam.found && toplam.confidence >= 0.85,
+      isEarsiv: isEarsivBelge,
+      detay: kdvDetay,
+      isIptal: isIptal,
+    );
 
-      // Eğer KDV, Toplam Tutardan BÜYÜK veya EŞİT okunduysa: (örn Toplam: 820, KDV: 820)
-      if (kVal > 0 && tVal > 0 && kVal >= tVal) {
-        // Bu kesinlikle bir OCR yanlışıdır. Toplam tutarı asla silme!
-        // Sadece KDV'yi detaylardan kurtarmaya çalış, kurtaramazsan KDV'yi sıfırla.
-        double kdvDetayToplami = 0;
-        for (var item in kdvDetay) {
-          kdvDetayToplami += double.tryParse(item.tutar) ?? 0;
-        }
-
-        if (kdvDetayToplami > 0 && kdvDetayToplami < tVal) {
-          finalToplamKdv = kdvDetayToplami.toStringAsFixed(2);
-          uyari = (uyari == null ? '' : uyari + '\n') +
-              'KDV tutarı hatalı okundu, fiş detayından düzeltildi.';
-        } else {
-          // KDV'yi boş bırak ki kullanıcı kendi girsin. Toplam tutarı koru!
-          finalToplamKdv = "";
-          if (!isIptal) {
-            uyari = (uyari == null ? '' : uyari + '\n') +
-                'KDV tutarı mantıksız (Toplamdan büyük/eşit). KDV sıfırlandı, elle giriniz.';
-          }
-        }
-      }
+    String finalToplamKdv = recon.kdv;
+    String finalToplamTutar = toplam.found ? recon.toplam : toplam.value;
+    for (final w in recon.warnings) {
+      uyari = (uyari == null || uyari.isEmpty) ? w : '$uyari\n$w';
     }
-    // DİKKAT: matrah + kdvDetayToplami = toplamTutar saçmalığı tamamen silindi!
+
+    // KDV kırılımı sanity: bir oranın KDV tutarı genel toplama yakın/üstündeyse
+    // bu Genel Toplam sızıntısıdır (gerçek KDV her zaman toplamdan küçüktür) → at.
+    final double finalTotalVal = double.tryParse(finalToplamTutar) ?? 0;
+    if (finalTotalVal > 0) {
+      kdvDetay.removeWhere(
+          (i) => (double.tryParse(i.tutar) ?? 0) >= finalTotalVal * 0.95);
+    }
 
     return ReceiptData(
       firmaAdi: firma.value,
@@ -627,12 +685,17 @@ class ReceiptParser {
       saat: saat.value,
       kdvDetay: kdvDetay,
       toplamKdv: finalToplamKdv,
-      kdvHaricToplam: matrah.value,
+      kdvHaricToplam: recon.matrah.isNotEmpty ? recon.matrah : matrah.value,
       araToplam: araToplam.value,
       toplamTutar: finalToplamTutar,
       odemeYontemi: odeme.value,
       paraUstu: paraUstu.value,
       paraBirimi: paraBirimi.value.isEmpty ? 'TL' : paraBirimi.value,
+      nakitTutar: odemeTutar['nakit']! > 0
+          ? odemeTutar['nakit']!.toStringAsFixed(2)
+          : '',
+      kartTutar:
+          odemeTutar['kart']! > 0 ? odemeTutar['kart']!.toStringAsFixed(2) : '',
       yakitTuru: yakitDetay['turu'],
       yakitLitre: yakitDetay['litre'],
       pompaNo: yakitDetay['pompa'],
@@ -679,35 +742,118 @@ class ReceiptParser {
     return false;
   }
 
-  static List<_Row> _buildRows(RecognizedText ocr) {
-    final rows = <_Row>[];
+  // ── ML Kit / kayıt → _El listesi (akış sırası, boş elemanlar atlanır) ──
+  static List<_El> _elsFromOcr(RecognizedText ocr) {
+    final els = <_El>[];
+    int order = 0;
     for (final block in ocr.blocks) {
       for (final line in block.lines) {
         for (final el in line.elements) {
-          final t = el.text.trim();
-          if (t.isEmpty) continue;
-          final yc = el.boundingBox.top + el.boundingBox.height / 2;
-          final tol = (el.boundingBox.height * 0.65).clamp(8.0, 28.0);
-          bool added = false;
-          for (final row in rows) {
-            if ((row.yCenter - yc).abs() < tol) {
-              row.elements.add(el);
-              row.yCenter = (row.yCenter * (row.elements.length - 1) + yc) /
-                  row.elements.length;
-              added = true;
-              break;
-            }
-          }
-          if (!added) rows.add(_Row(yc, [el]));
+          if (el.text.trim().isEmpty) continue;
+          final bb = el.boundingBox;
+          els.add(_El(el.text, bb.left.toDouble(), bb.top.toDouble(),
+              bb.height.toDouble(), order++));
         }
       }
     }
-    rows.sort((a, b) => a.yCenter.compareTo(b.yCenter));
-    for (final r in rows) {
-      r.elements
-          .sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
+    return els;
+  }
+
+  static List<_El> _elsFromRecords(
+      List<({String text, double x, double y, double w, double h})> recs) {
+    final els = <_El>[];
+    int order = 0;
+    for (final r in recs) {
+      if (r.text.trim().isEmpty) continue;
+      els.add(_El(r.text, r.x, r.y, r.h, order++));
+    }
+    return els;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SATIR GRUPLAMA — greedy birleştirme (her iki yolda da AYNI gruplama)
+  // ═══════════════════════════════════════════════════════════════════════
+  static List<_Row> _greedyGroup(List<_El> els) {
+    final rows = <_Row>[];
+    for (final el in els) {
+      final yc = el.yCenter;
+      final tol = (el.height * 0.65).clamp(8.0, 28.0);
+      bool added = false;
+      for (final row in rows) {
+        if ((row.yCenter - yc).abs() < tol) {
+          row.elements.add(el);
+          row.yCenter = (row.yCenter * (row.elements.length - 1) + yc) /
+              row.elements.length;
+          added = true;
+          break;
+        }
+      }
+      if (!added) rows.add(_Row(yc, [el]));
     }
     return rows;
+  }
+
+  // CANLI regex parser yolu — ORİJİNAL davranış (Dart List.sort, kararsız).
+  // DEĞİŞTİRİLMEDİ: regex katmanı bu sıraya göre ayarlandı.
+  static List<_Row> _buildRows(RecognizedText ocr) {
+    final rows = _greedyGroup(_elsFromOcr(ocr));
+    rows.sort((a, b) => a.yCenter.compareTo(b.yCenter));
+    for (final r in rows) {
+      r.elements.sort((a, b) => a.left.compareTo(b.left));
+    }
+    return rows;
+  }
+
+  // MODEL + golden harness yolu — KARARLI tie-break (input_contract §1.8).
+  // Satır sırası (yCenter, satır_oluşturma_index); satır-içi (left, json_index).
+  // Parite testinde (diff=0) kanıtlanan sıralama BUDUR.
+  static List<_Row> _groupRowsDeterministic(List<_El> els) {
+    final rows = _greedyGroup(els);
+    final indexed = [
+      for (int i = 0; i < rows.length; i++) (row: rows[i], created: i)
+    ];
+    indexed.sort((a, b) {
+      final c = a.row.yCenter.compareTo(b.row.yCenter);
+      return c != 0 ? c : a.created.compareTo(b.created);
+    });
+    final ordered = [for (final p in indexed) p.row];
+    for (final r in ordered) {
+      r.elements.sort((a, b) {
+        final c = a.left.compareTo(b.left);
+        return c != 0 ? c : a.order.compareTo(b.order);
+      });
+    }
+    return ordered;
+  }
+
+  static List<_Row> _rowsFromElements(
+          List<({String text, double x, double y, double w, double h})> recs) =>
+      _groupRowsDeterministic(_elsFromRecords(recs));
+
+  // ── MODEL GİRDİSİ: HAM token sırası (OCR düzeltmesi YOK) — input_contract ──
+  // Modele giden "kelime" listesi = bu fonksiyonun çıktısı (prefix hariç).
+  // Kararlı tie-break kullanır (eğitim girdisiyle parite).
+  static List<String> rawTokenOrder(RecognizedText ocr) {
+    final rows = _groupRowsDeterministic(_elsFromOcr(ocr));
+    return [
+      for (final r in rows)
+        for (final e in r.elements) e.text
+    ];
+  }
+
+  // ── GOLDEN HARNESS: okuma sırası dökümü (dart_order.json) ──
+  static List<Map<String, dynamic>> orderFromElements(
+      List<({String text, double x, double y, double w, double h})> recs) {
+    final rows = _rowsFromElements(recs);
+    return [
+      for (int i = 0; i < rows.length; i++)
+        {
+          'index': i,
+          'y_center': (rows[i].yCenter * 100).round() / 100,
+          'tokens': [for (final e in rows[i].elements) e.text],
+          'text': rows[i].elements.map((e) => e.text).join(' '),
+        }
+    ];
   }
 
   static _Field _firma(List<_Row> rows) {
@@ -804,8 +950,107 @@ class ReceiptParser {
     return _Field.empty;
   }
 
+  // ── VKN/TCKN checksum (GİB/MERNIS algoritmaları; NerPostprocess ile aynı) ──
+  static bool _vknValid(String n) {
+    if (!RegExp(r'^\d{10}$').hasMatch(n)) return false;
+    final d = n.split('').map(int.parse).toList();
+    int total = 0;
+    for (int i = 0; i < 9; i++) {
+      final tmp = (d[i] + (9 - i)) % 10;
+      if (tmp != 0) {
+        var v = (tmp * pow(2, 9 - i).toInt()) % 9;
+        if (v == 0) v = 9;
+        total += v;
+      }
+    }
+    return (10 - (total % 10)) % 10 == d[9];
+  }
+
+  static bool _tcknValid(String n) {
+    if (!RegExp(r'^\d{11}$').hasMatch(n) || n[0] == '0') return false;
+    final d = n.split('').map(int.parse).toList();
+    final d10 = ((((d[0] + d[2] + d[4] + d[6] + d[8]) * 7 -
+                    (d[1] + d[3] + d[5] + d[7])) %
+                10) +
+            10) %
+        10;
+    final d11 = d.sublist(0, 10).reduce((a, b) => a + b) % 10;
+    return d[9] == d10 && d[10] == d11;
+  }
+
+  static bool _taxIdValid(String n) =>
+      (n.length == 10 && _vknValid(n)) || (n.length == 11 && _tcknValid(n));
+
+  // OCR'da sık karışan haneler (baskı/7-segment). VKN/TCKN checksum-onarımında
+  // YALNIZ tek hane değiştirilir; sonuç checksum'dan geçmek zorunda (güvenli).
+  static const Map<String, List<String>> _ocrDigitConfusions = {
+    '0': ['8', '6', '9'],
+    '1': ['7'],
+    '2': ['7'],
+    '3': ['8', '9'],
+    '5': ['6', '8'],
+    '6': ['5', '8', '0'],
+    '7': ['1', '2'],
+    '8': ['6', '0', '3', '9'],
+    '9': ['4', '0', '8'],
+  };
+
+  /// Tek-haneli OCR karışmasını düzeltip checksum-geçen BENZERSİZ varyantı döner;
+  /// belirsizse (0 veya >1 geçerli varyant) null.
+  static String? _repairTaxId(String n) {
+    if (n.length != 10 && n.length != 11) return null;
+    final valid = <String>{};
+    for (int i = 0; i < n.length; i++) {
+      for (final alt in _ocrDigitConfusions[n[i]] ?? const <String>[]) {
+        final v = n.substring(0, i) + alt + n.substring(i + 1);
+        if (_taxIdValid(v)) valid.add(v);
+      }
+    }
+    return valid.length == 1 ? valid.first : null;
+  }
+
   static _Field _vergiNo(List<_Row> rows) {
     final reg = RegExp(r'\b([1-9]\d{9,10})\b');
+
+    // ── ÖNCELİK: checksum geçen aday (sahte 10-11 haneyi eler). Etiketli
+    //    (VD/VKN/TCKN) satırdaki geçerli aday, etiketsiz geçerliye tercih edilir.
+    String? validLabeled, validAny;
+    final labeledCands = <String>[]; // checksum-onarımı için (geçersizler dahil)
+    for (int i = 0; i < rows.length; i++) {
+      final rowText = _ocrClean(rows[i].text);
+      final u = rows[i].upper;
+      if (RegExp(r'\b\d{16}\b').hasMatch(rowText)) continue;
+      if (RegExp(r'\b\d{2}[./-]\d{2}[./-]\d{4}\b').hasMatch(rowText)) continue;
+      if (u.contains('ETTN') || u.contains('IBAN')) continue;
+      final labeled = u.contains('VKN') ||
+          u.contains('VD') ||
+          u.contains('V.D') ||
+          u.contains('TC ') ||
+          u.contains('TCKN') ||
+          u.contains('VERGI NO') ||
+          u.contains('VERGİ NO');
+      for (final m in reg.allMatches(rowText)) {
+        final num = m.group(1)!;
+        if (num.length != 10 && num.length != 11) continue;
+        if (_taxIdValid(num)) {
+          validAny ??= num;
+          if (labeled) validLabeled ??= num;
+        } else if (labeled) {
+          labeledCands.add(num);
+        }
+      }
+    }
+    if (validLabeled != null) return _Field(validLabeled, 0.99);
+    // checksum geçen yok ama etiketli aday OCR ile bozulmuş olabilir → onar.
+    if (validAny == null) {
+      for (final cand in labeledCands) {
+        final fixed = _repairTaxId(cand);
+        if (fixed != null) return _Field(fixed, 0.90);
+      }
+    }
+    if (validAny != null) return _Field(validAny, 0.97);
+
+    // ── checksum geçen yoksa: best-effort tier mantığı (geri uyumlu) ──
     for (int i = 0; i < rows.length; i++) {
       final rowText = _ocrClean(rows[i].text);
       final u = rows[i].upper;
@@ -1138,13 +1383,21 @@ class ReceiptParser {
                   ? _normPrice(kdvFiyat)
                   : _normPrice(matrahFiyat ?? '')));
         } else if (idx + 1 < rows.length) {
-          final nextPrices = rows[idx + 1].allPrices(_priceReg);
-          if (nextPrices.isNotEmpty) {
-            foundOranlar.add(oran);
-            items.add(KdvItem(
-                oran: '%$oran',
-                matrah: '',
-                tutar: _normPrice(nextPrices.last)));
+          // Alt satır bir TOPLAM/ödeme satırıysa fiyatını KDV sanma (sızıntı önleme).
+          final nu = rows[idx + 1].upper;
+          final nextIsTotalish = nu.contains('TOPLAM') ||
+              nu.contains('ÖDE') ||
+              nu.contains('ODE') ||
+              _anyOf(nu, _paymentKw);
+          if (!nextIsTotalish) {
+            final nextPrices = rows[idx + 1].allPrices(_priceReg);
+            if (nextPrices.isNotEmpty) {
+              foundOranlar.add(oran);
+              items.add(KdvItem(
+                  oran: '%$oran',
+                  matrah: '',
+                  tutar: _normPrice(nextPrices.last)));
+            }
           }
         }
       }
@@ -1156,14 +1409,17 @@ class ReceiptParser {
   // TOPLAM KDV — (TOPLAM ve KDV'yi birbirine karıştırmayan MÜKEMMEL filtre)
   // ═══════════════════════════════════════════════════════════════════════
   static _Field _toplamKdv(List<_Row> rows, List<KdvItem> detay) {
-    // 1. Önce doğrudan "TOPKDV", "TOPLAM KDV", "KDV TOPLAMI" gibi belirteçleri ara
+    // 1. Önce doğrudan "TOPKDV", "TOPLAM KDV", "HESAPLANAN KDV" gibi belirteçleri ara.
+    //    "KDV DAHİL TOPLAM" = toplam (KDV değil) → DAHİL içeren satır KDV olarak alınmaz.
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
+      if (u.contains('DAHİL') || u.contains('DAHIL')) continue;
       if (u.contains('TOPKDV') ||
           u.contains('TOP KDV') ||
           u.contains('TOPLAM KDV') ||
           u.contains('KDV TOPLAM') ||
-          u.contains('KDV TUTARI')) {
+          u.contains('KDV TUTARI') ||
+          u.contains('HESAPLANAN KDV')) {
         final cleaned = _ocrClean(rows[i].text);
         final p = _findRightmostPrice(cleaned, _priceReg);
         if (p != null) return _Field(_normPrice(p), 0.95);
@@ -1186,9 +1442,12 @@ class ReceiptParser {
     // 3. Fallback: Diğer KDV etiketlerini ara
     for (int i = 0; i < rows.length; i++) {
       final u = rows[i].upper;
-      // DİKKAT: Toplamı yakalamamak için sıkı denetim!
-      if (!u.contains('KDV') || u.contains('ARA TOP') || u.contains('MATRAH'))
-        continue;
+      // DİKKAT: Toplamı yakalamamak için sıkı denetim! "DAHİL" = toplam, KDV değil.
+      if (!u.contains('KDV') ||
+          u.contains('ARA TOP') ||
+          u.contains('MATRAH') ||
+          u.contains('DAHİL') ||
+          u.contains('DAHIL')) continue;
       final cleaned = _ocrClean(rows[i].text);
       final p = _findRightmostPrice(cleaned, _priceReg);
       if (p != null) return _Field(_normPrice(p), 0.78);
@@ -1196,6 +1455,7 @@ class ReceiptParser {
     // 4. Buruşuk fişler için agresif
     for (int i = 0; i < rows.length; i++) {
       final uAgg = rows[i].upperAggressive;
+      if (uAgg.contains('DAHİL') || uAgg.contains('DAHIL')) continue;
       if (!_fuzzy(uAgg, 'KDV') && !_fuzzy(uAgg, 'TOPKDV')) continue;
       final cleaned = _ocrClean(rows[i].textAggressive);
       final p = _findRightmostPrice(cleaned, _priceReg);
@@ -1256,15 +1516,24 @@ class ReceiptParser {
       final u = rows[i].upper;
 
       // ── KESİN DIŞLAMA ──
-      // KDV, Ara Toplam, Matrah kelimelerini içeren satır ASLA Genel Toplam olamaz!
-      if (u.contains('KDV') || u.contains('K.D.V') || u.contains('KATMA DEGER'))
-        continue;
+      // KDV/Ara Toplam/Matrah/Mal-Hizmet (alt-toplam) satırları ASLA Genel Toplam olamaz!
+      // İSTİSNA: "KDV DAHİL/VERGİLER DAHİL" satırı KDV değil, NİHAİ toplamdır.
+      final isDahil = u.contains('DAHİL') || u.contains('DAHIL');
+      if (!isDahil &&
+          (u.contains('KDV') ||
+              u.contains('K.D.V') ||
+              u.contains('KATMA DEGER'))) continue;
       if (u.contains('ARA TOP') ||
           u.contains('ARATOP') ||
-          u.contains('ARA TOPLAM')) continue;
+          u.contains('ARA TOPLAM') ||
+          RegExp(r'\bARA\b').hasMatch(u)) continue;
       if (u.contains('MATRAH') ||
           u.contains('VERGISIZ') ||
-          u.contains('VERGİSİZ')) continue;
+          u.contains('VERGİSİZ') ||
+          u.contains('MAL HIZMET') ||
+          u.contains('MAL HİZMET') ||
+          u.contains('MAL/HIZMET') ||
+          u.contains('MAL/HİZMET')) continue;
 
       bool matched = false;
       for (final kw in _totalKw) {
@@ -1294,14 +1563,17 @@ class ReceiptParser {
       // Bulunan tutar daha önce KDV olarak bulunduysa atla
       if (kdv.found && norm == kdv.value) continue;
 
+      // Özgüllük katmanı: GENEL/VERGİLER DAHİL/ÖDENECEK/FAT.TOP > genel TOPLAM/TUTAR > kısa.
+      final isGrand = _anyOf(u, _grandTotalKw) || _faturaTopReg.hasMatch(u);
       final exactMatch = _anyOf(u, _totalKw);
       final isShortMatch = u.trim() == 'TOP' ||
           u.trim().startsWith('TOP ') ||
           u.trim().endsWith(' TOP');
       final posBonus = (i / rows.length) >= 0.5 ? 0.05 : 0.0;
-      final conf =
-          ((exactMatch ? (isShortMatch ? 0.80 : 0.95) : 0.74) + posBonus)
-              .clamp(0.0, 1.0);
+      final base = isGrand
+          ? 0.97
+          : (exactMatch ? (isShortMatch ? 0.80 : 0.90) : 0.74);
+      final conf = (base + posBonus).clamp(0.0, 1.0);
 
       if (conf > best.confidence) best = _Field(norm, conf);
     }
@@ -1417,6 +1689,206 @@ class ReceiptParser {
     if (maxP.isNotEmpty && 0.42 > best.confidence) best = _Field(maxP, 0.42);
 
     return best;
+  }
+
+  // ── Ödeme tutarları: NAKİT / KART(+benzeri) / ÖDENEN; "para üstü" hariç ──
+  // Parçalı ödeme için nakit ve kart ayrı toplanır. T5 (₺→6) teyidi ve
+  // CARD_PAID/CASH_PAID rescue havuzu (NerRegexPool) bunu kullanır.
+  static Map<String, double> _paymentAmounts(List<_Row> rows) {
+    double nakit = 0, kart = 0, odenen = 0;
+    for (final row in rows) {
+      final u = row.upper;
+      final isUstu = u.contains('ÜSTÜ') || u.contains('USTU');
+      if (isUstu) continue;
+      final isNakit = u.contains('NAKİT') || u.contains('NAKIT');
+      final isKart = u.contains('KART') ||
+          u.contains('KREDİ') ||
+          u.contains('KREDI') ||
+          u.contains('BANKA') ||
+          u.contains('TEMASSIZ') ||
+          u.contains('MULTINET') ||
+          u.contains('MULTİNET') ||
+          u.contains('SODEXO') ||
+          u.contains('PLUXEE') ||
+          u.contains('TICKET') ||
+          u.contains('SETCARD') ||
+          u.contains('METROPOL') ||
+          u.contains('YEMEK');
+      final isOdenen = u.contains('ÖDENEN') ||
+          u.contains('ODENEN') ||
+          u.contains('ÖDENECEK') ||
+          u.contains('ODENECEK') ||
+          u.contains('TAHSİL') ||
+          u.contains('TAHSIL');
+      if (!isNakit && !isKart && !isOdenen) continue;
+      final p = _findRightmostPrice(_ocrClean(row.text), _priceReg);
+      if (p == null) continue;
+      final v = double.tryParse(_normPrice(p)) ?? 0;
+      if (v <= 0) continue;
+      if (isNakit) {
+        nakit += v;
+      } else if (isKart) {
+        kart += v;
+      }
+      if (isOdenen) odenen = v;
+    }
+    return {'nakit': nakit, 'kart': kart, 'odenen': odenen};
+  }
+
+  // ── Fişteki TEK KDV oranını {1,10,20} kümesinden TAM eşleşmeyle tespit eder ──
+  // "%" işaretli oranları okur; OCR harf-karışmasını (O→0, l/I→1, S→5, B→8) temizler.
+  // İndirim/iskonto/puan satırları HARİÇ (oran sanılmasın). Tam BİR oran varsa onu
+  // döner; yoksa veya >1 ise null → tek-oran ters hesabı UYGULANMAZ (güvenli).
+  // Not (TR): geçerli KDV oranları yalnız {1,10,20}; %8/%18 (eski) bilerek elenir →
+  // o fişler mevcut KDV okuma yoluna düşer (kör yuvarlama yapılmaz).
+  static int? _detectSingleVatRate(List<_Row> rows) {
+    final rates = <int>{};
+    final reg = RegExp(r'%\s*([0-9OoIlSB]{1,2})(?![0-9])');
+    for (final row in rows) {
+      final u = row.upper;
+      if (u.contains('İNDİRİM') ||
+          u.contains('INDIRIM') ||
+          u.contains('İSKONTO') ||
+          u.contains('ISKONTO') ||
+          u.contains('KAMPANYA') ||
+          u.contains('PUAN')) continue;
+      for (final m in reg.allMatches(row.text)) {
+        final raw = m
+            .group(1)!
+            .replaceAll(RegExp('[Oo]'), '0')
+            .replaceAll(RegExp('[Il]'), '1')
+            .replaceAll('S', '5')
+            .replaceAll('B', '8');
+        final n = int.tryParse(raw);
+        if (n != null && (n == 1 || n == 10 || n == 20)) rates.add(n);
+      }
+    }
+    return rates.length == 1 ? rates.first : null;
+  }
+
+  // ── Tutar uzlaştırma: matrah(M) ↔ KDV(K) ↔ toplam(T) çapraz doğrulama ──
+  // Sıra önemli. NER-öncelik değil; bu saf-regex tarafının iç tutarlılığıdır.
+  static ({String kdv, String toplam, String matrah, List<String> warnings})
+      _reconcileAmounts({
+    required double matrah,
+    required double kdv,
+    required double toplam,
+    required double cashTendered,
+    required double cardPaid,
+    required double change,
+    required int? singleRate, // fişte TEK KDV oranı (∈{1,10,20}) varsa
+    required bool totalReliable, // toplam yüksek güvenle okundu mu
+    required bool isEarsiv,
+    required List<KdvItem> detay,
+    required bool isIptal,
+  }) {
+    final warnings = <String>[];
+    double m = matrah, k = kdv, t = toplam;
+    double round2(double x) => (x * 100).round() / 100;
+    double tol(double base) => max(0.05, base * (isEarsiv ? 0.05 : 0.02));
+    // Mal bedeli = verilen para − para üstü (+ kart). ₺ teyidi bunu kullanır.
+    final double payment = max(0.0, round2(cashTendered + cardPaid - change));
+
+    // 0) PARA ÜSTÜ: toplam, VERİLEN para kadarsa (para üstü düşülmemiş) → düzelt.
+    //    Örn. mal 11,50; nakit 12,00; para üstü 0,50 ama toplam 12,00 okunmuş.
+    if (change > 0 && t > 0 && (cashTendered + cardPaid) > 0 &&
+        (t - (cashTendered + cardPaid)).abs() <= tol(t)) {
+      final net = round2(cashTendered + cardPaid - change);
+      if (net > 0 && (t - net).abs() > 0.01) {
+        t = net;
+        warnings.add(
+            'Para üstü düşülmemişti; toplam, verilen para − para üstü ile düzeltildi.');
+      }
+    }
+
+    // 1) ₺/TL OCR karışması (iki yönlü): matrah+KDV bağımsız ödeme ile teyitli
+    //    VE toplam aşırı sapkınsa düzelt. matrah+KDV ≈ toplam ise GERÇEK kabul, dokunma.
+    //    - ŞİŞME: ₺→6 toplamı büyütüyor (t > mk*1.5).
+    //    - EKSİLME: ₺ yanındaki rakam okunmuyor → toplam küçük (t < mk*0.67).
+    //    Toplam = matrah + KDV her zaman; t<mk fiziksel olarak imkânsızdır (kontrolle güvenli).
+    if (m > 0 && k > 0 && payment > 0 && t > 0) {
+      final mk = round2(m + k);
+      if ((mk - payment).abs() <= tol(payment) &&
+          (t > mk * 1.5 || t < mk * 0.67)) {
+        final yon = t > mk ? 'şişmiş' : 'eksik okunmuş';
+        t = mk;
+        warnings.add(
+            'Toplam tutar OCR\'de $yon görünüyor (₺/rakam karışması); matrah+KDV ve ödeme tutarından düzeltildi.');
+      }
+    }
+
+    // 2) Etiket yer değiştirme (KDV>Toplam, matrah var): matrah+küçük ≈ büyük.
+    if (k > 0 && t > 0 && k > t && m > 0) {
+      final hi = max(k, t), lo = min(k, t);
+      if ((m + lo - hi).abs() <= tol(hi)) {
+        t = hi;
+        k = lo;
+      }
+    }
+
+    bool kdvHandled = false;
+
+    // 3) TEK-ORAN KDV-DAHİL TERS HESAP — YALNIZ KDV OKUNAMADIYSA türet.
+    //    TR fişte TOPLAM = KDV dahil → KDV = T×r/(100+r), matrah = T−KDV.
+    //    DİKKAT: Okunan (mevcut) KDV'yi EZMEYİZ. Tek görünen oran, fişin TAMAMININ
+    //    o oranda olduğunu garantilemez (çok-oranlı fişte tek marker okunmuş olabilir;
+    //    okunan KDV bir oran-karışımı olabilir). Ezmek doğru KDV'yi bozardı → yalnız
+    //    boşluğu doldururuz. Mantıksız (örn. >%30) okunan KDV mevcut sanity/matrah
+    //    adımlarınca (4-6) ele alınır.
+    if (singleRate != null && totalReliable && t > 0 && k <= 0) {
+      final int rate = singleRate;
+      k = round2(t * rate / (100 + rate));
+      m = round2(t - k);
+      kdvHandled = true;
+    }
+
+    if (!kdvHandled) {
+      // 4) KDV ≥ Toplam (820 hatası): toplam ASLA silinmez; KDV kurtarılır/sıfırlanır.
+      if (k > 0 && t > 0 && k >= t) {
+        double detayTop = 0;
+        for (final it in detay) {
+          detayTop += double.tryParse(it.tutar) ?? 0;
+        }
+        if (detayTop > 0 && detayTop < t) {
+          k = round2(detayTop);
+          warnings.add('KDV tutarı hatalı okundu, fiş detayından düzeltildi.');
+        } else if (m > 0 && (t - m) > 0.01 && (t - m) <= t * 0.30) {
+          k = round2(t - m);
+          warnings
+              .add('KDV tutarı mantıksız; matrah ve toplamdan yeniden hesaplandı.');
+        } else {
+          k = 0;
+          if (!isIptal) {
+            warnings.add(
+                'KDV tutarı mantıksız (Toplamdan büyük/eşit). KDV sıfırlandı, elle giriniz.');
+          }
+        }
+      }
+      // 5) KDV sanity: toplamın %30'unu aşamaz (azami TR oranı ~%20 + yuvarlama).
+      else if (k > 0 && t > 0 && k > t * 0.30) {
+        if (m > 0 && (t - m) > 0.01 && (t - m) <= t * 0.30) {
+          k = round2(t - m);
+          warnings
+              .add('KDV tutarı oransal olarak yüksekti; matrah ve toplamdan düzeltildi.');
+        } else {
+          k = 0;
+          warnings.add(
+              'KDV tutarı mantıksız (toplamın %30\'unu aşıyor). KDV sıfırlandı, elle giriniz.');
+        }
+      }
+
+      // 6) KDV yok ama matrah+toplam var → KDV = toplam − matrah (makulse).
+      if (k <= 0 && m > 0 && t > m && (t - m) <= t * 0.30) {
+        k = round2(t - m);
+      }
+    }
+
+    return (
+      kdv: k > 0 ? k.toStringAsFixed(2) : '',
+      toplam: t > 0 ? t.toStringAsFixed(2) : toplam.toStringAsFixed(2),
+      matrah: m > 0 ? m.toStringAsFixed(2) : '',
+      warnings: warnings,
+    );
   }
 
   static _Field _odemeYontemi(List<_Row> rows) {

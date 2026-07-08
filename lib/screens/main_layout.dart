@@ -5,7 +5,7 @@ import '../utils/database_helper.dart';
 import 'scanner_screen.dart';
 import '../services/image_processor.dart';
 import '../services/ocr_service.dart';
-import '../utils/receipt_parser.dart';
+import '../utils/receipt_analyzer.dart';
 import '../models/receipt_data.dart';
 import '../widgets/result_sheet.dart'; // Fiş detay analizi için eklendi
 import '../main.dart'; // AppColors için
@@ -142,6 +142,13 @@ class _HistoryTabState extends State<_HistoryTab>
     with SingleTickerProviderStateMixin {
   String _filter = 'Tümü';
   late TabController _tabController;
+
+  // ── YENİ: Çoklu seçim / toplu silme durumu ──
+  bool _selectionMode = false;
+  final Set<int> _selectedIds = {};
+  // FutureBuilder içinde doldurulur; "Tümünü Seç" aktif sekmeye göre çalışır.
+  List<ReceiptData> _pendingList = [];
+  List<ReceiptData> _approvedList = [];
 
   @override
   void initState() {
@@ -343,6 +350,221 @@ class _HistoryTabState extends State<_HistoryTab>
     return result ?? false;
   }
 
+  // ════════════════ ÇOKLU SEÇİM / TOPLU SİLME ════════════════
+  List<ReceiptData> get _activeList =>
+      _tabController.index == 0 ? _pendingList : _approvedList;
+
+  void _enterSelection() => setState(() {
+        _selectionMode = true;
+        _selectedIds.clear();
+      });
+
+  void _exitSelection() => setState(() {
+        _selectionMode = false;
+        _selectedIds.clear();
+      });
+
+  void _toggleSelect(int id) => setState(() {
+        if (!_selectedIds.add(id)) _selectedIds.remove(id);
+      });
+
+  void _toggleSelectAll() {
+    final ids =
+        _activeList.where((r) => r.id != null).map((r) => r.id!).toList();
+    final hepsiSecili = ids.isNotEmpty && ids.every(_selectedIds.contains);
+    setState(() {
+      if (hepsiSecili) {
+        _selectedIds.removeAll(ids);
+      } else {
+        _selectedIds.addAll(ids);
+      }
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    final ids = _selectedIds.toList();
+    if (ids.isEmpty) return;
+    final ok = await _confirmBulkDelete(
+      title: '${ids.length} fiş silinsin mi?',
+      message:
+          'Seçilen ${ids.length} fiş ve varsa fotoğrafları kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      confirmLabel: 'Sil',
+    );
+    if (ok != true) return;
+    for (final id in ids) {
+      await widget.db.deleteReceipt(id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+    _showDeletedSnack('${ids.length} fiş silindi');
+  }
+
+  Future<void> _confirmDeleteAll() async {
+    final ok = await _confirmBulkDelete(
+      title: 'Tüm fişler silinsin mi?',
+      message:
+          'TÜM fişleriniz ve varsa fotoğrafları kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      confirmLabel: 'Tümünü Sil',
+    );
+    if (ok != true) return;
+    await widget.db.deleteAllReceipts();
+    if (!mounted) return;
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+    _showDeletedSnack('Tüm fişler silindi');
+  }
+
+  void _showDeletedSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.delete_outline_rounded,
+                color: AppColors.danger, size: 18),
+            const SizedBox(width: 10),
+            Text(msg, style: const TextStyle(fontWeight: FontWeight.w500)),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppColors.divider),
+        ),
+      ),
+    );
+  }
+
+  // ── Toplu silme onay dialog'u (seçilenleri / tümünü sil için ortak) ──
+  Future<bool?> _confirmBulkDelete({
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.delete_sweep_rounded,
+                    color: AppColors.danger, size: 28),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: const BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Vazgeç',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.danger,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: Text(confirmLabel,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Seçim modunda alt toplu-silme çubuğu ──
+  Widget _buildSelectionBar() {
+    final int n = _selectedIds.length;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: n == 0 ? null : _deleteSelected,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.danger,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.danger.withOpacity(0.35),
+            disabledForegroundColor: Colors.white.withOpacity(0.7),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          icon: const Icon(Icons.delete_outline_rounded, size: 20),
+          label: Text(
+            n == 0 ? 'Silmek için fiş seçin' : 'Seçilenleri Sil ($n)',
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -350,28 +572,95 @@ class _HistoryTabState extends State<_HistoryTab>
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header ──
+            // ── Header (normal / seçim modu) ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Row(
-                children: [
-                  const Text(
-                    'Fişlerim',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.8,
+              child: _selectionMode
+                  ? Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: _exitSelection,
+                          color: AppColors.textSecondary,
+                          tooltip: 'Seçimi kapat',
+                        ),
+                        Text(
+                          '${_selectedIds.length} seçildi',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: _toggleSelectAll,
+                          icon: const Icon(Icons.done_all_rounded, size: 18),
+                          label: const Text('Tümünü Seç'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        const Text(
+                          'Fişlerim',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.8,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded),
+                          onPressed: () => setState(() {}),
+                          color: AppColors.textSecondary,
+                        ),
+                        // YENİ: Silme menüsü — Seçerek sil / Tümünü sil
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert_rounded,
+                              color: AppColors.textSecondary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          onSelected: (v) {
+                            if (v == 'sec') _enterSelection();
+                            if (v == 'tumunu') _confirmDeleteAll();
+                          },
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: 'sec',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.checklist_rounded,
+                                      size: 20, color: AppColors.textPrimary),
+                                  SizedBox(width: 12),
+                                  Text('Seçerek sil'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'tumunu',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_sweep_rounded,
+                                      size: 20, color: AppColors.danger),
+                                  SizedBox(width: 12),
+                                  Text('Tümünü sil',
+                                      style:
+                                          TextStyle(color: AppColors.danger)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded),
-                    onPressed: () => setState(() {}),
-                    color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
             ),
 
             // ── Onay Durumu TabBar Seçici ──
@@ -470,6 +759,10 @@ class _HistoryTabState extends State<_HistoryTab>
                     }
                   }).toList();
 
+                  // Toplu seçim/silme için aktif listeleri sakla
+                  _pendingList = pendingReceipts;
+                  _approvedList = approvedReceipts;
+
                   return TabBarView(
                     controller: _tabController,
                     children: [
@@ -488,6 +781,9 @@ class _HistoryTabState extends State<_HistoryTab>
                 },
               ),
             ),
+
+            // ── Seçim modunda alt toplu-silme çubuğu ──
+            if (_selectionMode) _buildSelectionBar(),
           ],
         ),
       ),
@@ -509,6 +805,11 @@ class _HistoryTabState extends State<_HistoryTab>
         final receipt = list[index];
         return _ReceiptCard(
           receipt: receipt,
+          // YENİ: Çoklu seçim modu
+          selectionMode: _selectionMode,
+          selected: receipt.id != null && _selectedIds.contains(receipt.id),
+          onSelectToggle:
+              receipt.id == null ? null : () => _toggleSelect(receipt.id!),
           // YENİ: Hem onay bekleyen hem onaylanan TIKLANABİLİR
           // Onay bekleyen → onaylama modu
           // Onaylanan → detay/düzenleme modu (isDetailMode: true)
@@ -604,11 +905,19 @@ class _ReceiptCard extends StatelessWidget {
   final Future<bool> Function()? onConfirmDelete; // Silme onayı dialog'u
   final VoidCallback? onDeleted; // Silme gerçekleşince callback
 
+  // YENİ: Çoklu seçim modu
+  final bool selectionMode; // true ise checkbox gösterilir, tıklama = seçim
+  final bool selected; // Bu fiş seçili mi?
+  final VoidCallback? onSelectToggle; // Seçimi aç/kapa
+
   const _ReceiptCard({
     required this.receipt,
     this.onTap,
     this.onConfirmDelete,
     this.onDeleted,
+    this.selectionMode = false,
+    this.selected = false,
+    this.onSelectToggle,
   });
 
   Color get _kategoriRengi =>
@@ -659,19 +968,35 @@ class _ReceiptCard extends StatelessWidget {
     final cardBody = Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color:
+            selected ? AppColors.primary.withOpacity(0.06) : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider, width: 1),
+        border: Border.all(
+          color: selected ? AppColors.primary : AppColors.divider,
+          width: selected ? 1.5 : 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: selectionMode ? onSelectToggle : onTap,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
+                // YENİ: Seçim modunda checkbox
+                if (selectionMode) ...[
+                  Icon(
+                    selected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color:
+                        selected ? AppColors.primary : AppColors.textTertiary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 // Görsel veya kategori ikonu
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -836,8 +1161,8 @@ class _ReceiptCard extends StatelessWidget {
       ),
     );
 
-    // Eğer silme fonksiyonları sağlanmadıysa düz kart döner
-    if (onConfirmDelete == null || onDeleted == null) {
+    // Seçim modunda veya silme fonksiyonu yoksa düz kart döner (kaydırma kapalı)
+    if (selectionMode || onConfirmDelete == null || onDeleted == null) {
       return cardBody;
     }
 
@@ -891,57 +1216,118 @@ class _ScannerTabState extends State<_ScannerTab> {
   final ImagePicker _picker = ImagePicker();
   final OcrService _ocr = OcrService();
 
-  bool _isAnalyzing = false;
-  int _pendingTasks = 0;
+  // Galeriden tek seferde seçilebilecek maksimum fotoğraf sayısı.
+  // Sınır: her görsel ağır bir iyileştirme + OCR işleminden geçtiği için
+  // çok sayıda fotoğrafın aynı anda işlenmesi bellek/CPU'yu zorlar.
+  static const int _maxFotograf = 20;
 
-  Future<void> _processGalleryImage(XFile imageFile) async {
+  bool _isAnalyzing = false;
+  int _batchTotal = 0; // Mevcut işlem turundaki toplam fiş sayısı (örn. 20)
+  int _batchDone = 0; // Tamamlanan (işlenen) fiş sayısı → "x/20" göstergesi
+
+  // Galeriden seçilen bir veya birden fazla fişi arka planda SIRAYLA işler.
+  // Sıralı işleme bilinçli bir tercih: tüm görseller aynı anda işlenirse
+  // (her biri 2400px iyileştirme + ML Kit OCR) bellek patlar ve UI kasar.
+  // Bu yüzden teker teker (await) işliyoruz; banner "x/total" ile ilerler.
+  Future<void> _processGalleryImages(List<XFile> images) async {
+    if (images.isEmpty) return;
+
+    // Performans güvenliği: limit aşılırsa fazlasını kırp ve kullanıcıyı bilgilendir.
+    final bool limitAsildi = images.length > _maxFotograf;
+    final List<XFile> batch =
+        limitAsildi ? images.sublist(0, _maxFotograf) : images;
+
     setState(() {
       _isAnalyzing = true;
-      _pendingTasks++;
+      _batchTotal += batch.length;
     });
 
-    try {
-      final enhancedImage = await ImageProcessor.enhanceForGallery(imageFile);
-      final recognizedText = await _ocr.processImage(enhancedImage);
+    int basarili = 0;
+    int basarisiz = 0;
 
-      if (recognizedText != null) {
-        final parsedData = ReceiptParser.parse(recognizedText);
-        parsedData.imagePath = enhancedImage.path;
-        await widget.db.insertReceipt(parsedData);
-      }
-    } catch (e) {
-      debugPrint("Arka plan analiz hatası: $e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          _pendingTasks--;
-          if (_pendingTasks == 0) _isAnalyzing = false;
-        });
+    // NER modelini parti öncesi bir kez ısıt (ilk fişte gecikmeyi azaltır;
+    // kullanılamıyorsa analyze yine regex'e fallback yapar).
+    await ReceiptAnalyzer.warmUp();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: AppColors.success),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Fiş başarıyla kaydedildi',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: const BorderSide(color: AppColors.divider),
-            ),
-          ),
-        );
+    for (final imageFile in batch) {
+      try {
+        final enhancedImage = await ImageProcessor.enhanceForGallery(imageFile);
+        final recognizedText = await _ocr.processImage(enhancedImage);
+
+        if (recognizedText != null) {
+          // NER birincil + regex fallback.
+          final parsedData = await ReceiptAnalyzer.analyze(recognizedText);
+          parsedData.imagePath = enhancedImage.path;
+          await widget.db.insertReceipt(parsedData);
+          basarili++;
+        } else {
+          basarisiz++;
+        }
+      } catch (e) {
+        basarisiz++;
+        debugPrint("Arka plan analiz hatası: $e");
+      } finally {
+        if (mounted) {
+          setState(() {
+            _batchDone++;
+            // Tüm parti bitince sayaçları ve banner'ı sıfırla
+            if (_batchDone >= _batchTotal) {
+              _isAnalyzing = false;
+              _batchDone = 0;
+              _batchTotal = 0;
+            }
+          });
+        }
       }
     }
+
+    if (mounted) _showBatchResult(basarili, basarisiz, limitAsildi);
+  }
+
+  // İşlem bittiğinde tek bir özet bildirim gösterir (her foto için ayrı değil).
+  void _showBatchResult(int basarili, int basarisiz, bool limitAsildi) {
+    final bool hepsiBasarili = basarisiz == 0 && basarili > 0;
+    String mesaj;
+    if (basarili > 0 && basarisiz > 0) {
+      mesaj = '$basarili fiş kaydedildi, $basarisiz fiş okunamadı';
+    } else if (basarili > 0) {
+      mesaj = basarili == 1
+          ? 'Fiş başarıyla kaydedildi'
+          : '$basarili fiş başarıyla kaydedildi';
+    } else {
+      mesaj = 'Fiş okunamadı. Daha net bir fotoğraf deneyin';
+    }
+    if (limitAsildi) {
+      mesaj += ' (en fazla $_maxFotograf fotoğraf işlenir)';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              hepsiBasarili
+                  ? Icons.check_circle_rounded
+                  : Icons.info_rounded,
+              color: hepsiBasarili ? AppColors.success : AppColors.warning,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                mesaj,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppColors.divider),
+        ),
+      ),
+    );
   }
 
   @override
@@ -982,10 +1368,10 @@ class _ScannerTabState extends State<_ScannerTab> {
 
               const SizedBox(height: 32),
 
-              // ── Arka Plan İşlem Banner ──
+              // ── Arka Plan İşlem Banner (aşama aşama ilerleme: x/total) ──
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                height: _isAnalyzing ? 64 : 0,
+                height: _isAnalyzing ? 78 : 0,
                 margin: EdgeInsets.only(bottom: _isAnalyzing ? 20 : 0),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withOpacity(0.08),
@@ -994,25 +1380,52 @@ class _ScannerTabState extends State<_ScannerTab> {
                 ),
                 child: _isAnalyzing
                     ? Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: AppColors.accent,
-                                strokeWidth: 2,
-                              ),
+                            Row(
+                              children: [
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.accent,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Text(
+                                    // İşlenen fiş "x/total" olarak aşama aşama gösterilir
+                                    'Fişler işleniyor — '
+                                    '${_batchDone < _batchTotal ? _batchDone + 1 : _batchTotal}'
+                                    '/$_batchTotal',
+                                    style: const TextStyle(
+                                      color: AppColors.accent,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                'Arka planda $_pendingTasks fiş işleniyor',
-                                style: const TextStyle(
-                                  color: AppColors.accent,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: _batchTotal == 0
+                                    ? null
+                                    : _batchDone / _batchTotal,
+                                minHeight: 5,
+                                backgroundColor:
+                                    AppColors.accent.withOpacity(0.15),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.accent,
                                 ),
                               ),
                             ),
@@ -1036,17 +1449,17 @@ class _ScannerTabState extends State<_ScannerTab> {
 
               const SizedBox(height: 14),
 
-              // ── Galeriden Yükle ──
+              // ── Galeriden Yükle (çoklu seçim) ──
               _PrimaryActionCard(
                 title: 'Galeriden Yükle',
-                subtitle: 'Mevcut bir fotoğrafı seç',
+                subtitle: 'Bir veya birden fazla fiş seç',
                 icon: Icons.photo_library_rounded,
                 isPrimary: false,
                 onTap: () async {
-                  final image = await _picker.pickImage(
-                    source: ImageSource.gallery,
+                  final images = await _picker.pickMultiImage(
+                    limit: _maxFotograf,
                   );
-                  if (image != null) _processGalleryImage(image);
+                  if (images.isNotEmpty) _processGalleryImages(images);
                 },
               ),
 

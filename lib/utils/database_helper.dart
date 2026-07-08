@@ -23,10 +23,10 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'mey_receipts.db');
 
-    // ── VERSİYON 2'YE YÜKSELTİLDİ ──
+    // ── VERSİYON 3'E YÜKSELTİLDİ (nerJson sütunu eklendi) ──
     return await openDatabase(
       path,
-      version: 2, // Versiyonu 2 yaptık
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // Veritabanı güncelleme mantığı eklendi
     );
@@ -56,7 +56,8 @@ class DatabaseHelper {
         kategori TEXT,
         imagePath TEXT,
         uyari TEXT,
-        confidenceScoresJson TEXT -- Doğruluk oranları için eklendi
+        confidenceScoresJson TEXT, -- Doğruluk oranları için eklendi
+        nerJson TEXT -- §5.2 ham NER çıktısı (saha verisi + parite kıyası)
       )
     ''');
   }
@@ -74,6 +75,12 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE receipts ADD COLUMN confidenceScoresJson TEXT',
         );
+      } catch (_) {}
+    }
+    if (oldVersion < 3) {
+      // §5.2 ham NER çıktısı sütunu
+      try {
+        await db.execute('ALTER TABLE receipts ADD COLUMN nerJson TEXT');
       } catch (_) {}
     }
   }
@@ -116,6 +123,7 @@ class DatabaseHelper {
       'confidenceScoresJson': jsonEncode(
         data.confidenceScores,
       ), // Doğruluk oranları DB'ye eklendi
+      'nerJson': data.nerJson, // §5.2 ham NER çıktısı (null olabilir)
     };
 
     // Eğer id varsa (Yani var olan bir fiş güncelleniyorsa) map'e id'yi de ekle.
@@ -272,6 +280,7 @@ class DatabaseHelper {
       imagePath: map['imagePath'],
       uyari: map['uyari'] == '' ? null : map['uyari'],
       confidenceScores: parsedScores, // Kaydedilen oranlar modele aktarılıyor
+      nerJson: map['nerJson'], // §5.2 ham NER çıktısı (varsa)
     );
   }
 }
@@ -312,7 +321,7 @@ extension KategoriToplamlariExtension on DatabaseHelper {
       } else {
         val =
             double.tryParse((rawVal ?? '0').toString().replaceAll(',', '.')) ??
-            0;
+                0;
       }
       kategoriToplamlar[key] = val;
     }
